@@ -1,0 +1,11 @@
+; $Id$
+name = Embeddables
+description = Provides a field for embedding entites, which itself may have any number of fields.
+package = Core
+version = VERSION
+core = 7.x
+dependencies[] = entity
+dependencies[] = entity_metadata
+files[] = embeddable.module
+files[] = embeddable.test
+files[] = embeddable.pages.inc

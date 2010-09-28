@@ -1,0 +1,48 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install, update and uninstall functions for the embeddable module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function embeddable_schema() {
+
+  $schema['embeddable'] = array(
+    'description' => 'Stores information about embeddables.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique embeddable ID.',
+      ),
+      'field_name' => array(
+        'description' => 'The name of the field on the host entity embedding this entity.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}
+
+
+/**
+ * Implements hook_field_schema().
+ */
+function embeddable_field_schema($field) {
+  $columns = array(
+    'value' => array(
+      'type' => 'int',
+      'not null' => FALSE
+    ),
+  );
+  return array(
+    'columns' => $columns,
+  );
+}

@@ -1,0 +1,82 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Embeddables tests.
+ */
+
+/**
+ * Test basics.
+ */
+class EmbeddableBasicTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Embeddables',
+      'description' => 'Tests the embeddable field/entity.',
+      'group' => 'Field types',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('embeddable');
+
+    // Create a embeddable field to use for the tests.
+    $this->field_name = drupal_strtolower($this->randomName() . '_field_name');
+    $this->field = array('field_name' => $this->field_name, 'type' => 'embeddable', 'cardinality' => 4);
+    $this->field = field_create_field($this->field);
+    $this->field_id = $this->field['id'];
+
+    $this->instance = array(
+      'field_name' => $this->field_name,
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => $this->randomName() . '_label',
+      'description' => $this->randomName() . '_description',
+      'weight' => mt_rand(0, 127),
+      'settings' => array(),
+      'widget' => array(
+        'type' => 'hidden',
+        'label' => 'Test',
+        'settings' => array(),
+      ),
+    );
+    $this->instance = field_create_instance($this->instance);
+  }
+
+  /**
+   * Tests CRUD.
+   */
+  function testCRUD() {
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    // Manually create an embeddable.
+    $entity = entity_create('embeddable', array('field_name' => $this->field_name));
+    $entity->save($node);
+    node_save($node);
+
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An embeddable has been successfully created.');
+
+    // Test adding an additional embeddable during node edit.
+    $entity2 = entity_create('embeddable', array('field_name' => $this->field_name));
+    $node->{$this->field_name}[LANGUAGE_NONE][] = array('entity' => $entity2);
+    node_save($node);
+
+    $node = node_load($node->nid, NULL, TRUE);
+    $this->assertTrue(!empty($entity2->id), 'Embeddable has been saved.');
+    $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
+    $this->assertEqual($entity2->id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New embeddable has been properly referenced');
+
+    // Make sure deleting the embeddable removes the reference.
+    $entity2->delete();
+    $this->assertTrue(!isset($node->{$this->field_name}[LANGUAGE_NONE][1]), 'Reference correctly deleted.');
+
+    // Make sure embeddables are removed during deletion of the host.
+    node_delete($node->nid);
+    $this->assertTrue(entity_load('embeddable', FALSE) === array(), 'Embeddables are deleted when the host is deleted.');
+  }
+
+
+
+}
