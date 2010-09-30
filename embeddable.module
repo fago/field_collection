@@ -52,7 +52,7 @@ function embeddable_entity_info_alter(&$info) {
   foreach (field_info_fields() as $field_name => $field) {
     if ($field['type'] == 'embeddable') {
       $info['embeddable']['bundles'][$field_name] = array(
-        'label' => t('Field %field', array('%field' => $field_name)),
+        'label' => t('Embeddable @field', array('@field' => $field_name)),
         'admin' => array(
           'path' => 'admin/structure/embeddables/%embeddable_field_name',
           'real path' => 'admin/structure/embeddables/' . strtr($field_name, array('_' => '-')),
@@ -299,6 +299,19 @@ class Embeddable extends EntityDB {
  */
 function embeddable_menu() {
   $items = array();
+  if (module_exists('field_ui')) {
+    $items['admin/structure/embeddables'] = array(
+      'title' => 'Embeddables',
+      'description' => 'Manage fields on embeddables.',
+      'page callback' => 'embeddables_overview',
+      //@todo add a separate permission?
+      'access arguments' => array('administer content types'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'embeddable.admin.inc',
+    );
+  }
+
+  // Add menu paths for viewing/editing/deleting embeddables.
   foreach (field_info_fields() as $field) {
     if ($field['type'] == 'embeddable') {
       $path = embeddable_field_get_path($field);
@@ -349,6 +362,22 @@ function embeddable_menu() {
     }
   }
   return $items;
+}
+
+/**
+ * Implements hook_menu_alter() to fix the embeddables admin UI tabs.
+ */
+function embeddable_menu_alter(&$items) {
+  if (module_exists('field_ui')) {
+    // Make the fields task the default local task.
+    $items['admin/structure/embeddables/%embeddable_field_name'] = $items['admin/structure/embeddables/%embeddable_field_name/fields'];
+    $items['admin/structure/embeddables/%embeddable_field_name']['type'] = MENU_CALLBACK;
+    $items['admin/structure/embeddables/%embeddable_field_name/fields'] = array(
+      'title' => 'Manage fields',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => 1,
+    );
+  }
 }
 
 // @todo Implement + specify @hook_entity_info().
