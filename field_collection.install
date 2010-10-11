@@ -11,13 +11,13 @@
  */
 function field_collection_schema() {
 
-  $schema['field_collection'] = array(
-    'description' => 'Stores information about field-collections.',
+  $schema['field_collection_item'] = array(
+    'description' => 'Stores information about field collection items.',
     'fields' => array(
-      'id' => array(
+      'item_id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => 'Primary Key: Unique field-collection ID.',
+        'description' => 'Primary Key: Unique field collection item ID.',
       ),
       'field_name' => array(
         'description' => 'The name of the field on the host entity embedding this entity.',
@@ -26,7 +26,7 @@ function field_collection_schema() {
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('id'),
+    'primary key' => array('item_id'),
   );
   return $schema;
 }

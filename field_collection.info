@@ -9,3 +9,4 @@ dependencies[] = entity_metadata
 files[] = field_collection.module
 files[] = field_collection.test
 files[] = field_collection.pages.inc
+files[] = field_collection.admin.inc

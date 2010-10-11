@@ -3,35 +3,35 @@
 
 /**
  * @file
- * Provides the field_collection view / edit / delete pages.
+ * Provides the field-collection item view / edit / delete pages.
  */
 
 // TODO: fix being embedded in a host with revisions.
 
 /**
- * field_collection view page.
+ * Field-collection item view page.
  */
-function field_collection_page_view($field_collection) {
+function field_collection_item_page_view($field_collection_item) {
   // @todo: Set breadcrumb including the host.
-  drupal_set_title($field_collection->label());
-  return $field_collection->view();
+  drupal_set_title($field_collection_item->label());
+  return $field_collection_item->view();
 }
 
 /**
- * Form for editing an field_collection.
+ * Form for editing a field-collection item.
  * @todo implement hook_forms().
  */
-function field_collection_form($form, &$form_state, $field_collection) {
-  if (!isset($field_collection->is_new)) {
-    drupal_set_title($field_collection->label());
+function field_collection_item_form($form, &$form_state, $field_collection_item) {
+  if (!isset($field_collection_item->is_new)) {
+    drupal_set_title($field_collection_item->label());
   }
-  $form_state += array('field_collection' => $field_collection);
+  $form_state += array('field_collection_item' => $field_collection_item);
 
   // Hack: entity_form_field_validate() needs the bundle to be set.
   // @todo: Fix core and remove the hack.
-  $form['field_name'] = array('#type' => 'value', '#value' => $field_collection->field_name);
+  $form['field_name'] = array('#type' => 'value', '#value' => $field_collection_item->field_name);
 
-  field_attach_form('field_collection', $field_collection, $form, $form_state);
+  field_attach_form('field_collection_item', $field_collection_item, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions', '#weight' => 50);
   $form['actions']['submit'] = array(
@@ -45,36 +45,36 @@ function field_collection_form($form, &$form_state, $field_collection) {
 /**
  * Validation callback.
  */
-function field_collection_form_validate($form, &$form_state) {
-  entity_form_field_validate('field_collection', $form, $form_state);
+function field_collection_item_form_validate($form, &$form_state) {
+  entity_form_field_validate('field_collection_item', $form, $form_state);
 }
 
 /**
  * Submit builder. Extracts the form values and updates the entity.
  */
-function field_collection_form_submit_build_field_collection($form, $form_state) {
-  entity_form_submit_build_entity('field_collection', $form_state['field_collection'], $form, $form_state);
-  return $form_state['field_collection'];
+function field_collection_item_form_submit_build_field_collection($form, $form_state) {
+  entity_form_submit_build_entity('field_collection_item', $form_state['field_collection_item'], $form, $form_state);
+  return $form_state['field_collection_item'];
 }
 
 /**
  * Submit callback that permanently saves the changes to the entity.
  */
-function field_collection_form_submit($form, &$form_state) {
-  $field_collection = field_collection_form_submit_build_field_collection($form, $form_state);
-  $field_collection->save();
+function field_collection_item_form_submit($form, &$form_state) {
+  $field_collection_item = field_collection_item_form_submit_build_field_collection($form, $form_state);
+  $field_collection_item->save();
   drupal_set_message(t('The changes have been saved.'));
-  $form_state['redirect'] = $field_collection->path();
+  $form_state['redirect'] = $field_collection_item->path();
 }
 
 /**
  * Form for deleting an field_collection.
  */
-function field_collection_delete_confirm($form, &$form_state, $field_collection) {
-  $form_state += array('field_collection' => $field_collection);
+function field_collection_item_delete_confirm($form, &$form_state, $field_collection_item) {
+  $form_state += array('field_collection_item' => $field_collection_item);
   return confirm_form($form,
-    t('Are you sure you want to delete %label?', array('%label' => $field_collection->label())),
-    $field_collection->path(),
+    t('Are you sure you want to delete %label?', array('%label' => $field_collection_item->label())),
+    $field_collection_item->path(),
     t('This action cannot be undone.'),
     t('Delete'),
     t('Cancel')
@@ -84,17 +84,17 @@ function field_collection_delete_confirm($form, &$form_state, $field_collection)
 /**
  * Submit callback for deleting an field_collection.
  */
-function field_collection_delete_confirm_submit($form, &$form_state) {
-  $field_collection = $form_state['field_collection'];
-  $field_collection->delete();
-  drupal_set_message(t('%label has been deleted.', array('%label' => drupal_ucfirst($field_collection->label()))));
+function field_collection_item_delete_confirm_submit($form, &$form_state) {
+  $field_collection_item = $form_state['field_collection_item'];
+  $field_collection_item->delete();
+  drupal_set_message(t('%label has been deleted.', array('%label' => drupal_ucfirst($field_collection_item->label()))));
   $form_state['redirect'] = '<front>';
 }
 
 /**
  * Add a new field_collection.
  */
-function field_collection_add($field_name, $entity_type, $entity_id) {
+function field_collection_item_add($field_name, $entity_type, $entity_id) {
   $info = entity_get_info();
   if (!isset($info[$entity_type])) {
     return MENU_NOT_FOUND;
@@ -120,10 +120,10 @@ function field_collection_add($field_name, $entity_type, $entity_id) {
   }
 
   drupal_set_title(t('Add new @instance_label', array('@instance_label' => $instance['label'])));
-  $field_collection = entity_create('field_collection', array('field_name' => $field_name));
+  $field_collection_item = entity_create('field_collection_item', array('field_name' => $field_name));
   // Add the host entity to the field_collection such that it is picked upon save
   // and the link between the entities is created. see field_collection::save().
-  $field_collection->host_entity = $entity;
-  $field_collection->host_entity_type = $entity_type;
-  return drupal_get_form('field_collection_form', $field_collection);
+  $field_collection_item->host_entity = $entity;
+  $field_collection_item->host_entity_type = $entity_type;
+  return drupal_get_form('field_collection_item_form', $field_collection_item);
 }

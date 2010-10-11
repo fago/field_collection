@@ -23,16 +23,16 @@ function field_collection_help($path, $arg) {
  * Implements hook_entity_info().
  */
 function field_collection_entity_info() {
-  $return['field_collection'] = array(
-    'label' => t('Field-collection'),
+  $return['field_collection_item'] = array(
+    'label' => t('Field-collection item'),
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
-    'entity class' => 'FieldCollectionEntity',
+    'entity class' => 'FieldCollectionItemEntity',
     'controller class' => 'EntityAPIController',
-    'base table' => 'field_collection',
+    'base table' => 'field_collection_item',
     'fieldable' => TRUE,
     'entity keys' => array(
-      'id' => 'id',
+      'id' => 'item_id',
       'bundle' => 'field_name',
     ),
     'module' => 'field_collection',
@@ -49,7 +49,7 @@ function field_collection_entity_info_alter(&$info) {
   // hook_entity_info() to be invoked.
   foreach (field_info_fields() as $field_name => $field) {
     if ($field['type'] == 'field_collection') {
-      $info['field_collection']['bundles'][$field_name] = array(
+      $info['field_collection_item']['bundles'][$field_name] = array(
         'label' => t('Field-collection @field', array('@field' => $field_name)),
         'admin' => array(
           'path' => 'admin/structure/field_collections/%field_collection_field_name',
@@ -74,26 +74,26 @@ function field_collection_field_name_load($arg) {
 }
 
 /**
- * Loads an field_collection.
+ * Loads a field-collection item.
  *
- * @return field_collection
- *   The field_collection or FALSE.
+ * @return field_collection_item
+ *   The field_collection_item or FALSE.
  */
-function field_collection_load($id) {
-  $result = entity_load('field_collection', array($id));
+function field_collection_item_load($item_id) {
+  $result = entity_load('field_collection_item', array($item_id));
   return $result ? reset($result) : FALSE;
 }
 
 /**
- * Class for field_collection entities.
+ * Class for field_collection_item entities.
  */
-class FieldCollectionEntity extends EntityDB {
+class FieldCollectionItemEntity extends EntityDB {
 
   protected $fieldInfo, $hostEntityId, $hostEntityType;
-  public $id, $field_name;
+  public $item_id, $field_name;
 
   public function __construct(array $values = array(), $entityType = NULL) {
-    parent::__construct($values, 'field_collection');
+    parent::__construct($values, 'field_collection_item');
     $this->fieldInfo = field_info_field($this->field_name);
     if (!$this->fieldInfo || $this->fieldInfo['type'] != 'field_collection') {
       throw new Exception("Invalid field name given.");
@@ -122,22 +122,22 @@ class FieldCollectionEntity extends EntityDB {
   public function label() {
     // @todo make configurable.
     if ($instance = $this->instanceInfo()) {
-      if ($this->id) {
+      if ($this->item_id) {
         return t('@instance_label @count', array('@instance_label' => $instance['label'], '@count' => $this->delta() + 1));
       }
       else {
         return t('New @instance_label', array('@instance_label' => $instance['label']));
       }
     }
-    return t('Unconnected field-collection');
+    return t('Unconnected field-collection item');
   }
 
   /**
    * Returns the path used to view the entity.
    */
   public function path() {
-    if ($this->id) {
-      return field_collection_field_get_path($this->fieldInfo) . '/' . $this->id;
+    if ($this->item_id) {
+      return field_collection_field_get_path($this->fieldInfo) . '/' . $this->item_id;
     }
   }
 
@@ -190,10 +190,10 @@ class FieldCollectionEntity extends EntityDB {
 
   protected function fetchHostDetails() {
     if (!isset($this->hostEntityId)) {
-      if ($this->id) {
+      if ($this->item_id) {
         // For saved field_collections, the link has to be created.
         $query = new EntityFieldQuery();
-        $query->fieldCondition($this->fieldInfo(), 'value', $this->id);
+        $query->fieldCondition($this->fieldInfo(), 'value', $this->item_id);
         $result = $query->execute();
         list($this->hostEntityType, $data) = each($result);
         $this->hostEntityId = $data ? key($data) : FALSE;
@@ -213,13 +213,14 @@ class FieldCollectionEntity extends EntityDB {
   }
 
   /**
-   * Determines the $delta of the reference pointing to this field_collection.
+   * Determines the $delta of the reference pointing to this field-collection
+   * item.
    */
   public function delta() {
-    if ($this->id && $entity = $this->hostEntity()) {
+    if ($this->item_id && $entity = $this->hostEntity()) {
       foreach ($entity->{$this->field_name} as $lang => &$data) {
         foreach ($data as $delta => $item) {
-          if ($item['value'] == $this->id) {
+          if ($item['value'] == $this->item_id) {
             return $delta;
           }
         }
@@ -228,12 +229,12 @@ class FieldCollectionEntity extends EntityDB {
   }
 
   /**
-   * Save the field_collection.
+   * Save the field-collection item.
    *
    * During creation a host entity has to be specified, so that the field_collection
    * can be referenced from the host entities field. For the link to be fully
    * established, the host entity object is updated automatically to include a
-   * reference on this field_collection.
+   * reference on this field-collection item.
    *
    * @param $host_entity_type
    *   The type of the host entity. During creation either this argument or the
@@ -249,7 +250,7 @@ class FieldCollectionEntity extends EntityDB {
     try {
       // Make sure we have a host entity during creation.
       if (!empty($this->is_new) && !isset($host_entity_type) && !isset($this->host_entity_type)) {
-        throw new Exception("Unable to create an field-collection without a given host entity.");
+        throw new Exception("Unable to create a field-collection item without a given host entity.");
       }
       $is_new = !empty($this->is_new);
       $return = entity_get_controller($this->entityType)->save($this, $transaction);
@@ -260,7 +261,7 @@ class FieldCollectionEntity extends EntityDB {
         $host_entity_type = isset($host_entity_type) ? $host_entity_type : $this->host_entity_type;
 
         $lang = isset($this->language) ? $this->language : LANGUAGE_NONE;
-        $host_entity->{$this->field_name}[$lang][] = array('value' => $this->id);
+        $host_entity->{$this->field_name}[$lang][] = array('value' => $this->item_id);
         entity_metadata_entity_save($host_entity_type, $host_entity);
       }
       // @todo: Should we implement a "garbage collector" for field_collections that
@@ -281,10 +282,10 @@ class FieldCollectionEntity extends EntityDB {
   public function delete() {
     parent::delete();
     // Delete the reference of the host entity.
-    if ($this->id && $entity = $this->hostEntity()) {
+    if ($this->item_id && $entity = $this->hostEntity()) {
       foreach ($entity->{$this->field_name} as $lang => &$data) {
         foreach ($data as $delta => $item) {
-          if ($item['value'] == $this->id) {
+          if ($item['value'] == $this->item_id) {
             unset($data[$delta]);
           }
         }
@@ -317,32 +318,32 @@ function field_collection_menu() {
       $path = field_collection_field_get_path($field);
       $count = count(explode('/', $path));
 
-      $items[$path . '/%field_collection'] = array(
-        'page callback' => 'field_collection_page_view',
+      $items[$path . '/%field_collection_item'] = array(
+        'page callback' => 'field_collection_item_page_view',
         'page arguments' => array($count),
-        'access callback' => 'field_collection_access',
+        'access callback' => 'field_collection_item_access',
         'access arguments' => array('view', $count),
         'file' => 'field_collection.pages.inc',
       );
-      $items[$path . '/%field_collection/view'] = array(
+      $items[$path . '/%field_collection_item/view'] = array(
         'title' => 'View',
         'type' => MENU_DEFAULT_LOCAL_TASK,
         'weight' => -10,
       );
-      $items[$path . '/%field_collection/edit'] = array(
+      $items[$path . '/%field_collection_item/edit'] = array(
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('field_collection_form', $count),
-        'access callback' => 'field_collection_access',
+        'page arguments' => array('field_collection_item_form', $count),
+        'access callback' => 'field_collection_item_access',
         'access arguments' => array('view', $count),
         'title' => 'Edit',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
         'file' => 'field_collection.pages.inc',
       );
-      $items[$path . '/%field_collection/delete'] = array(
+      $items[$path . '/%field_collection_item/delete'] = array(
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('field_collection_delete_confirm', $count),
-        'access callback' => 'field_collection_access',
+        'page arguments' => array('field_collection_item_delete_confirm', $count),
+        'access callback' => 'field_collection_item_access',
         'access arguments' => array('view', $count),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
@@ -350,9 +351,9 @@ function field_collection_menu() {
         'file' => 'field_collection.pages.inc',
       );
       $items[$path . '/add/%field_collection_field_name/%/%'] = array(
-        'page callback' => 'field_collection_add',
+        'page callback' => 'field_collection_item_add',
         'page arguments' => array($count + 1, $count + 2, $count + 3),
-        'access callback' => 'field_collection_access',
+        'access callback' => 'field_collection_item_access',
         'access arguments' => array('view', $count),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
@@ -381,7 +382,7 @@ function field_collection_menu_alter(&$items) {
 }
 
 // @todo Implement + specify @hook_entity_info().
-function field_collection_access() {
+function field_collection_item_access() {
   return TRUE;
 }
 
@@ -425,7 +426,7 @@ function field_collection_field_presave($entity_type, $entity, $field, $instance
     if (isset($item['entity'])) {
       // Pass FALSE, as we already have the link to the host entity.
       $item['entity']->save(FALSE);
-      $item = array('value' => $item['entity']->id);
+      $item = array('value' => $item['entity']->item_id);
     }
   }
 }
@@ -435,7 +436,7 @@ function field_collection_field_presave($entity_type, $entity, $field, $instance
  */
 function field_collection_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
   // Also delete all embedded entities.
-  entity_delete_multiple('field_collection', field_collection_field_item_to_ids($items));
+  entity_delete_multiple('field_collection_item', field_collection_field_item_to_ids($items));
 }
 
 /**
@@ -530,7 +531,7 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
     case 'field_collection_list':
 
       foreach ($items as $delta => $item) {
-        $field_collection = isset($item['entity']) ? $item['entity'] : field_collection_load($item['value']);
+        $field_collection = isset($item['entity']) ? $item['entity'] : field_collection_item_load($item['value']);
 
         if ($field_collection) {
           $output = l($field_collection->label(), $field_collection->path());
@@ -588,7 +589,7 @@ function field_collection_features_pipe_field_alter(&$pipe, $data, $export) {
   // Add the fields of the field-collection entity to the pipe.
   foreach ($data as $identifier) {
     if (($field = features_field_load($identifier)) && $field['field_config']['type'] == 'field_collection') {
-      $fields = field_info_instances('field_collection', $field['field_config']['field_name']);
+      $fields = field_info_instances('field_collection_item', $field['field_config']['field_name']);
       foreach ($fields as $name => $field) {
         $pipe['field'][] = "{$field['entity_type']}-{$field['bundle']}-{$field['field_name']}";
       }
