@@ -579,3 +579,18 @@ function embeddable_field_create_field($field) {
     menu_rebuild();
   }
 }
+
+/**
+ * Implements hook_features_pipe_component_alter() for fields.
+ */
+function embeddable_features_pipe_field_alter(&$pipe, $data, $export) {
+  // Add the fields of the exportable entity to the pipe.
+  foreach ($data as $identifier) {
+    if (($field = features_field_load($identifier)) && $field['field_config']['type'] == 'embeddable') {
+      $fields = field_info_instances('embeddable', $field['field_config']['field_name']);
+      foreach ($fields as $name => $field) {
+        $pipe['field'][] = "{$field['entity_type']}-{$field['bundle']}-{$field['field_name']}";
+      }
+    }
+  }
+}
