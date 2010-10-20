@@ -248,7 +248,7 @@ class Embeddable extends EntityDB {
     $transaction = db_transaction();
     try {
       // Make sure we have a host entity during creation.
-      if (!empty($this->is_new) && !isset($host_entity) && !isset($this->host_entity)) {
+      if (!empty($this->is_new) && !isset($host_entity_type) && !isset($this->host_entity_type)) {
         throw new Exception("Unable to create an Embeddable without a given host entity.");
       }
       $is_new = !empty($this->is_new);

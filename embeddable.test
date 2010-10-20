@@ -52,8 +52,7 @@ class EmbeddableBasicTestCase extends DrupalWebTestCase {
     $node = $this->drupalCreateNode(array('type' => 'article'));
     // Manually create an embeddable.
     $entity = entity_create('embeddable', array('field_name' => $this->field_name));
-    $entity->save($node);
-    node_save($node);
+    $entity->save('node', $node);
 
     $node = node_load($node->nid, NULL, TRUE);
     $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An embeddable has been successfully created.');
@@ -64,6 +63,7 @@ class EmbeddableBasicTestCase extends DrupalWebTestCase {
     node_save($node);
 
     $node = node_load($node->nid, NULL, TRUE);
+
     $this->assertTrue(!empty($entity2->id), 'Embeddable has been saved.');
     $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
     $this->assertEqual($entity2->id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New embeddable has been properly referenced');
