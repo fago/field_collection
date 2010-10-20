@@ -3,28 +3,28 @@
 
 /**
  * @file
- * Embeddables tests.
+ * field_collections tests.
  */
 
 /**
  * Test basics.
  */
-class EmbeddableBasicTestCase extends DrupalWebTestCase {
+class FieldCollectionBasicTestCase extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'Embeddables',
-      'description' => 'Tests the embeddable field/entity.',
+      'name' => 'Field collection',
+      'description' => 'Tests the field-collection field/entity.',
       'group' => 'Field types',
     );
   }
 
   function setUp() {
-    parent::setUp('embeddable');
+    parent::setUp('field_collection');
 
-    // Create a embeddable field to use for the tests.
+    // Create a field_collection field to use for the tests.
     $this->field_name = drupal_strtolower($this->randomName() . '_field_name');
-    $this->field = array('field_name' => $this->field_name, 'type' => 'embeddable', 'cardinality' => 4);
+    $this->field = array('field_name' => $this->field_name, 'type' => 'field_collection', 'cardinality' => 4);
     $this->field = field_create_field($this->field);
     $this->field_id = $this->field['id'];
 
@@ -50,31 +50,30 @@ class EmbeddableBasicTestCase extends DrupalWebTestCase {
    */
   function testCRUD() {
     $node = $this->drupalCreateNode(array('type' => 'article'));
-    // Manually create an embeddable.
-    $entity = entity_create('embeddable', array('field_name' => $this->field_name));
-    $entity->save($node);
-    node_save($node);
+    // Manually create an field_collection.
+    $entity = entity_create('field_collection', array('field_name' => $this->field_name));
+    $entity->save('node', $node);
 
     $node = node_load($node->nid, NULL, TRUE);
-    $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An embeddable has been successfully created.');
+    $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An field_collection has been successfully created.');
 
-    // Test adding an additional embeddable during node edit.
-    $entity2 = entity_create('embeddable', array('field_name' => $this->field_name));
+    // Test adding an additional field_collection during node edit.
+    $entity2 = entity_create('field_collection', array('field_name' => $this->field_name));
     $node->{$this->field_name}[LANGUAGE_NONE][] = array('entity' => $entity2);
     node_save($node);
 
     $node = node_load($node->nid, NULL, TRUE);
-    $this->assertTrue(!empty($entity2->id), 'Embeddable has been saved.');
+    $this->assertTrue(!empty($entity2->id), 'field_collection has been saved.');
     $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
-    $this->assertEqual($entity2->id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New embeddable has been properly referenced');
+    $this->assertEqual($entity2->id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New field_collection has been properly referenced');
 
-    // Make sure deleting the embeddable removes the reference.
+    // Make sure deleting the field_collection removes the reference.
     $entity2->delete();
     $this->assertTrue(!isset($node->{$this->field_name}[LANGUAGE_NONE][1]), 'Reference correctly deleted.');
 
-    // Make sure embeddables are removed during deletion of the host.
+    // Make sure field_collections are removed during deletion of the host.
     node_delete($node->nid);
-    $this->assertTrue(entity_load('embeddable', FALSE) === array(), 'Embeddables are deleted when the host is deleted.');
+    $this->assertTrue(entity_load('field_collection', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
   }
 
 

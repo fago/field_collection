@@ -3,35 +3,35 @@
 
 /**
  * @file
- * Provides the embeddable view / edit / delete pages.
+ * Provides the field_collection view / edit / delete pages.
  */
 
 // TODO: fix being embedded in a host with revisions.
 
 /**
- * Embeddable view page.
+ * field_collection view page.
  */
-function embeddable_page_view($embeddable) {
+function field_collection_page_view($field_collection) {
   // @todo: Set breadcrumb including the host.
-  drupal_set_title($embeddable->label());
-  return $embeddable->view();
+  drupal_set_title($field_collection->label());
+  return $field_collection->view();
 }
 
 /**
- * Form for editing an embeddable.
+ * Form for editing an field_collection.
  * @todo implement hook_forms().
  */
-function embeddable_form($form, &$form_state, $embeddable) {
-  if (!isset($embeddable->is_new)) {
-    drupal_set_title($embeddable->label());
+function field_collection_form($form, &$form_state, $field_collection) {
+  if (!isset($field_collection->is_new)) {
+    drupal_set_title($field_collection->label());
   }
-  $form_state += array('embeddable' => $embeddable);
+  $form_state += array('field_collection' => $field_collection);
 
   // Hack: entity_form_field_validate() needs the bundle to be set.
   // @todo: Fix core and remove the hack.
-  $form['field_name'] = array('#type' => 'value', '#value' => $embeddable->field_name);
+  $form['field_name'] = array('#type' => 'value', '#value' => $field_collection->field_name);
 
-  field_attach_form('embeddable', $embeddable, $form, $form_state);
+  field_attach_form('field_collection', $field_collection, $form, $form_state);
 
   $form['actions'] = array('#type' => 'actions', '#weight' => 50);
   $form['actions']['submit'] = array(
@@ -45,36 +45,36 @@ function embeddable_form($form, &$form_state, $embeddable) {
 /**
  * Validation callback.
  */
-function embeddable_form_validate($form, &$form_state) {
-  entity_form_field_validate('embeddable', $form, $form_state);
+function field_collection_form_validate($form, &$form_state) {
+  entity_form_field_validate('field_collection', $form, $form_state);
 }
 
 /**
  * Submit builder. Extracts the form values and updates the entity.
  */
-function embeddable_form_submit_build_embeddable($form, $form_state) {
-  entity_form_submit_build_entity('embeddable', $form_state['embeddable'], $form, $form_state);
-  return $form_state['embeddable'];
+function field_collection_form_submit_build_field_collection($form, $form_state) {
+  entity_form_submit_build_entity('field_collection', $form_state['field_collection'], $form, $form_state);
+  return $form_state['field_collection'];
 }
 
 /**
  * Submit callback that permanently saves the changes to the entity.
  */
-function embeddable_form_submit($form, &$form_state) {
-  $embeddable = embeddable_form_submit_build_embeddable($form, $form_state);
-  $embeddable->save();
+function field_collection_form_submit($form, &$form_state) {
+  $field_collection = field_collection_form_submit_build_field_collection($form, $form_state);
+  $field_collection->save();
   drupal_set_message(t('The changes have been saved.'));
-  $form_state['redirect'] = $embeddable->path();
+  $form_state['redirect'] = $field_collection->path();
 }
 
 /**
- * Form for deleting an embeddable.
+ * Form for deleting an field_collection.
  */
-function embeddable_delete_confirm($form, &$form_state, $embeddable) {
-  $form_state += array('embeddable' => $embeddable);
+function field_collection_delete_confirm($form, &$form_state, $field_collection) {
+  $form_state += array('field_collection' => $field_collection);
   return confirm_form($form,
-    t('Are you sure you want to delete %label?', array('%label' => $embeddable->label())),
-    $embeddable->path(),
+    t('Are you sure you want to delete %label?', array('%label' => $field_collection->label())),
+    $field_collection->path(),
     t('This action cannot be undone.'),
     t('Delete'),
     t('Cancel')
@@ -82,19 +82,19 @@ function embeddable_delete_confirm($form, &$form_state, $embeddable) {
 }
 
 /**
- * Submit callback for deleting an embeddable.
+ * Submit callback for deleting an field_collection.
  */
-function embeddable_delete_confirm_submit($form, &$form_state) {
-  $embeddable = $form_state['embeddable'];
-  $embeddable->delete();
-  drupal_set_message(t('%label has been deleted.', array('%label' => drupal_ucfirst($embeddable->label()))));
+function field_collection_delete_confirm_submit($form, &$form_state) {
+  $field_collection = $form_state['field_collection'];
+  $field_collection->delete();
+  drupal_set_message(t('%label has been deleted.', array('%label' => drupal_ucfirst($field_collection->label()))));
   $form_state['redirect'] = '<front>';
 }
 
 /**
- * Add a new embeddable.
+ * Add a new field_collection.
  */
-function embeddable_add($field_name, $entity_type, $entity_id) {
+function field_collection_add($field_name, $entity_type, $entity_id) {
   $info = entity_get_info();
   if (!isset($info[$entity_type])) {
     return MENU_NOT_FOUND;
@@ -120,10 +120,10 @@ function embeddable_add($field_name, $entity_type, $entity_id) {
   }
 
   drupal_set_title(t('Add new @instance_label', array('@instance_label' => $instance['label'])));
-  $embeddable = entity_create('embeddable', array('field_name' => $field_name));
-  // Add the host entity to the embeddable such that it is picked upon save
-  // and the link between the entities is created. see Embeddable::save().
-  $embeddable->host_entity = $entity;
-  $embeddable->host_entity_type = $entity_type;
-  return drupal_get_form('embeddable_form', $embeddable);
+  $field_collection = entity_create('field_collection', array('field_name' => $field_name));
+  // Add the host entity to the field_collection such that it is picked upon save
+  // and the link between the entities is created. see field_collection::save().
+  $field_collection->host_entity = $entity;
+  $field_collection->host_entity_type = $entity_type;
+  return drupal_get_form('field_collection_form', $field_collection);
 }

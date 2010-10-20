@@ -3,21 +3,21 @@
 
 /**
  * @file
- * Install, update and uninstall functions for the embeddable module.
+ * Install, update and uninstall functions for the field_collection module.
  */
 
 /**
  * Implements hook_schema().
  */
-function embeddable_schema() {
+function field_collection_schema() {
 
-  $schema['embeddable'] = array(
-    'description' => 'Stores information about embeddables.',
+  $schema['field_collection'] = array(
+    'description' => 'Stores information about field_collections.',
     'fields' => array(
       'id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => 'Primary Key: Unique embeddable ID.',
+        'description' => 'Primary Key: Unique field_collection ID.',
       ),
       'field_name' => array(
         'description' => 'The name of the field on the host entity embedding this entity.',
@@ -35,7 +35,7 @@ function embeddable_schema() {
 /**
  * Implements hook_field_schema().
  */
-function embeddable_field_schema($field) {
+function field_collection_field_schema($field) {
   $columns = array(
     'value' => array(
       'type' => 'int',

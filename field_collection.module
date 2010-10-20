@@ -9,12 +9,12 @@
 /**
  * Implements hook_help().
  */
-function embeddable_help($path, $arg) {
+function field_collection_help($path, $arg) {
   switch ($path) {
-    case 'admin/help#embeddable':
+    case 'admin/help#field_collection':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('The embeddable module provides a field for embedding entites, which itself may have any number of fields. See the <a href="@field-help">Field module help page</a> for more information about fields.', array('@field-help' => url('admin/help/field'))) . '</p>';
+      $output .= '<p>' . t('The field_collection module provides a field for embedding entites, which itself may have any number of fields. See the <a href="@field-help">Field module help page</a> for more information about fields.', array('@field-help' => url('admin/help/field'))) . '</p>';
       return $output;
   }
 }
@@ -22,20 +22,20 @@ function embeddable_help($path, $arg) {
 /**
  * Implements hook_entity_info().
  */
-function embeddable_entity_info() {
-  $return['embeddable'] = array(
-    'label' => t('Embeddable'),
+function field_collection_entity_info() {
+  $return['field_collection'] = array(
+    'label' => t('field_collection'),
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
-    'entity class' => 'Embeddable',
+    'entity class' => 'FieldCollectionEntity',
     'controller class' => 'EntityAPIController',
-    'base table' => 'embeddable',
+    'base table' => 'field_collection',
     'fieldable' => TRUE,
     'entity keys' => array(
       'id' => 'id',
       'bundle' => 'field_name',
     ),
-    'module' => 'embeddable',
+    'module' => 'field_collection',
   );
   return $return;
 }
@@ -43,17 +43,17 @@ function embeddable_entity_info() {
 /**
  * Implements hook_entity_info_alter().
  */
-function embeddable_entity_info_alter(&$info) {
+function field_collection_entity_info_alter(&$info) {
   // Add info about the bundles. We need to this in hook_entity_info_alter()
   // to avoid infinite recursion, as field_info_fields() causes
   // hook_entity_info() to be invoked.
   foreach (field_info_fields() as $field_name => $field) {
-    if ($field['type'] == 'embeddable') {
-      $info['embeddable']['bundles'][$field_name] = array(
-        'label' => t('Embeddable @field', array('@field' => $field_name)),
+    if ($field['type'] == 'field_collection') {
+      $info['field_collection']['bundles'][$field_name] = array(
+        'label' => t('field_collection @field', array('@field' => $field_name)),
         'admin' => array(
-          'path' => 'admin/structure/embeddables/%embeddable_field_name',
-          'real path' => 'admin/structure/embeddables/' . strtr($field_name, array('_' => '-')),
+          'path' => 'admin/structure/field_collections/%field_collection_field_name',
+          'real path' => 'admin/structure/field_collections/' . strtr($field_name, array('_' => '-')),
           'bundle argument' => 3,
           // @todo: fix access.
           'access arguments' => array('administer content types'),
@@ -66,49 +66,49 @@ function embeddable_entity_info_alter(&$info) {
 /**
  * Menu callback for loading the bundle names.
  */
-function embeddable_field_name_load($arg) {
+function field_collection_field_name_load($arg) {
   $field_name = strtr($arg, array('-' => '_'));
-  if (($field = field_info_field($field_name)) && $field['type'] == 'embeddable') {
+  if (($field = field_info_field($field_name)) && $field['type'] == 'field_collection') {
     return $field_name;
   }
 }
 
 /**
- * Loads an embeddable.
+ * Loads an field_collection.
  *
- * @return Embeddable
- *   The embeddable or FALSE.
+ * @return field_collection
+ *   The field_collection or FALSE.
  */
-function embeddable_load($id) {
-  $result = entity_load('embeddable', array($id));
+function field_collection_load($id) {
+  $result = entity_load('field_collection', array($id));
   return $result ? reset($result) : FALSE;
 }
 
 /**
- * Class for embeddable entities.
+ * Class for field_collection entities.
  */
-class Embeddable extends EntityDB {
+class FieldCollectionEntity extends EntityDB {
 
   protected $fieldInfo, $hostEntityId, $hostEntityType;
   public $id, $field_name;
 
   public function __construct(array $values = array(), $entityType = NULL) {
-    parent::__construct($values, 'embeddable');
+    parent::__construct($values, 'field_collection');
     $this->fieldInfo = field_info_field($this->field_name);
-    if (!$this->fieldInfo || $this->fieldInfo['type'] != 'embeddable') {
+    if (!$this->fieldInfo || $this->fieldInfo['type'] != 'field_collection') {
       throw new Exception("Invalid field name given.");
     }
   }
 
   /**
-   * Provides info about the field on the host entity, which embeds this Embeddable.
+   * Provides info about the field on the host entity, which embeds this field_collection.
    */
   public function fieldInfo() {
     return $this->fieldInfo;
   }
 
   /**
-   * Provides info of the field instance containing the reference to this Embeddable.
+   * Provides info of the field instance containing the reference to this field_collection.
    */
   public function instanceInfo() {
     if ($this->fetchHostDetails()) {
@@ -129,7 +129,7 @@ class Embeddable extends EntityDB {
         return t('New @instance_label', array('@instance_label' => $instance['label']));
       }
     }
-    return t('Unconnected embeddable');
+    return t('Unconnected field_collection');
   }
 
   /**
@@ -137,7 +137,7 @@ class Embeddable extends EntityDB {
    */
   public function path() {
     if ($this->id) {
-      return embeddable_field_get_path($this->fieldInfo) . '/' . $this->id;
+      return field_collection_field_get_path($this->fieldInfo) . '/' . $this->id;
     }
   }
 
@@ -151,7 +151,7 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Returns the host entity, which embeds this Embeddable.
+   * Returns the host entity, which embeds this field_collection.
    */
   public function hostEntity() {
     if ($this->fetchHostDetails()) {
@@ -161,7 +161,7 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Returns the entity type of the host entity, which embeds this Embeddable.
+   * Returns the entity type of the host entity, which embeds this field_collection.
    */
   public function hostEntityType() {
     if ($this->fetchHostDetails()) {
@@ -170,7 +170,7 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Returns the id of the host entity, which embeds this Embeddable.
+   * Returns the id of the host entity, which embeds this field_collection.
    */
   public function hostEntityId() {
     if ($this->fetchHostDetails()) {
@@ -179,7 +179,7 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Returns the bundle of the host entity, which embeds this Embeddable.
+   * Returns the bundle of the host entity, which embeds this field_collection.
    */
   public function hostEntityBundle() {
     if ($entity = $this->hostEntity()) {
@@ -191,7 +191,7 @@ class Embeddable extends EntityDB {
   protected function fetchHostDetails() {
     if (!isset($this->hostEntityId)) {
       if ($this->id) {
-        // For saved embeddables, the link has to be created.
+        // For saved field_collections, the link has to be created.
         $query = new EntityFieldQuery();
         $query->fieldCondition($this->fieldInfo(), 'value', $this->id);
         $result = $query->execute();
@@ -200,7 +200,7 @@ class Embeddable extends EntityDB {
       }
       elseif (isset($this->host_entity_type) && isset($this->host_entity)) {
         // During creationg, read the public host entity properties.
-        // See Embeddable::save().
+        // See field_collection::save().
         $this->hostEntityType = $this->host_entity_type;
         list($this->hostEntityId) = entity_extract_ids($this->hostEntityType, $this->host_entity);
       }
@@ -213,7 +213,7 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Determines the $delta of the reference pointing to this embeddable.
+   * Determines the $delta of the reference pointing to this field_collection.
    */
   public function delta() {
     if ($this->id && $entity = $this->hostEntity()) {
@@ -228,12 +228,12 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Save the Embeddable.
+   * Save the field_collection.
    *
-   * During creation a host entity has to be specified, so that the Embeddable
+   * During creation a host entity has to be specified, so that the field_collection
    * can be referenced from the host entities field. For the link to be fully
    * established, the host entity object is updated automatically to include a
-   * reference on this embeddable.
+   * reference on this field_collection.
    *
    * @param $host_entity_type
    *   The type of the host entity. During creation either this argument or the
@@ -248,8 +248,8 @@ class Embeddable extends EntityDB {
     $transaction = db_transaction();
     try {
       // Make sure we have a host entity during creation.
-      if (!empty($this->is_new) && !isset($host_entity) && !isset($this->host_entity)) {
-        throw new Exception("Unable to create an Embeddable without a given host entity.");
+      if (!empty($this->is_new) && !isset($host_entity_type) && !isset($this->host_entity_type)) {
+        throw new Exception("Unable to create an field-collection without a given host entity.");
       }
       $is_new = !empty($this->is_new);
       $return = entity_get_controller($this->entityType)->save($this, $transaction);
@@ -263,7 +263,7 @@ class Embeddable extends EntityDB {
         $host_entity->{$this->field_name}[$lang][] = array('value' => $this->id);
         entity_metadata_entity_save($host_entity_type, $host_entity);
       }
-      // @todo: Should we implement a "garbage collector" for embeddables that
+      // @todo: Should we implement a "garbage collector" for field_collections that
       // somehow were not properly embedded due to the host entity never has
       // been saved?
 
@@ -276,7 +276,7 @@ class Embeddable extends EntityDB {
   }
 
   /**
-   * Delete the embeddable.
+   * Delete the field_collection.
    */
   public function delete() {
     parent::delete();
@@ -297,67 +297,67 @@ class Embeddable extends EntityDB {
 /**
  * Implements hook_menu().
  */
-function embeddable_menu() {
+function field_collection_menu() {
   $items = array();
   if (module_exists('field_ui')) {
-    $items['admin/structure/embeddables'] = array(
-      'title' => 'Embeddables',
-      'description' => 'Manage fields on embeddables.',
-      'page callback' => 'embeddables_overview',
+    $items['admin/structure/field_collections'] = array(
+      'title' => 'field_collections',
+      'description' => 'Manage fields on field_collections.',
+      'page callback' => 'field_collections_overview',
       //@todo add a separate permission?
       'access arguments' => array('administer content types'),
       'type' => MENU_NORMAL_ITEM,
-      'file' => 'embeddable.admin.inc',
+      'file' => 'field_collection.admin.inc',
     );
   }
 
-  // Add menu paths for viewing/editing/deleting embeddables.
+  // Add menu paths for viewing/editing/deleting field_collections.
   foreach (field_info_fields() as $field) {
-    if ($field['type'] == 'embeddable') {
-      $path = embeddable_field_get_path($field);
+    if ($field['type'] == 'field_collection') {
+      $path = field_collection_field_get_path($field);
       $count = count(explode('/', $path));
 
-      $items[$path . '/%embeddable'] = array(
-        'page callback' => 'embeddable_page_view',
+      $items[$path . '/%field_collection'] = array(
+        'page callback' => 'field_collection_page_view',
         'page arguments' => array($count),
-        'access callback' => 'embeddable_access',
+        'access callback' => 'field_collection_access',
         'access arguments' => array('view', $count),
-        'file' => 'embeddable.pages.inc',
+        'file' => 'field_collection.pages.inc',
       );
-      $items[$path . '/%embeddable/view'] = array(
+      $items[$path . '/%field_collection/view'] = array(
         'title' => 'View',
         'type' => MENU_DEFAULT_LOCAL_TASK,
         'weight' => -10,
       );
-      $items[$path . '/%embeddable/edit'] = array(
+      $items[$path . '/%field_collection/edit'] = array(
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('embeddable_form', $count),
-        'access callback' => 'embeddable_access',
+        'page arguments' => array('field_collection_form', $count),
+        'access callback' => 'field_collection_access',
         'access arguments' => array('view', $count),
         'title' => 'Edit',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-        'file' => 'embeddable.pages.inc',
+        'file' => 'field_collection.pages.inc',
       );
-      $items[$path . '/%embeddable/delete'] = array(
+      $items[$path . '/%field_collection/delete'] = array(
         'page callback' => 'drupal_get_form',
-        'page arguments' => array('embeddable_delete_confirm', $count),
-        'access callback' => 'embeddable_access',
+        'page arguments' => array('field_collection_delete_confirm', $count),
+        'access callback' => 'field_collection_access',
         'access arguments' => array('view', $count),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_INLINE,
-        'file' => 'embeddable.pages.inc',
+        'file' => 'field_collection.pages.inc',
       );
-      $items[$path . '/add/%embeddable_field_name/%/%'] = array(
-        'page callback' => 'embeddable_add',
+      $items[$path . '/add/%field_collection_field_name/%/%'] = array(
+        'page callback' => 'field_collection_add',
         'page arguments' => array($count + 1, $count + 2, $count + 3),
-        'access callback' => 'embeddable_access',
+        'access callback' => 'field_collection_access',
         'access arguments' => array('view', $count),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_INLINE,
-        'file' => 'embeddable.pages.inc',
+        'file' => 'field_collection.pages.inc',
       );
     }
   }
@@ -365,14 +365,14 @@ function embeddable_menu() {
 }
 
 /**
- * Implements hook_menu_alter() to fix the embeddables admin UI tabs.
+ * Implements hook_menu_alter() to fix the field_collections admin UI tabs.
  */
-function embeddable_menu_alter(&$items) {
-  if (module_exists('field_ui') && isset($items['admin/structure/embeddables/%embeddable_field_name/fields'])) {
+function field_collection_menu_alter(&$items) {
+  if (module_exists('field_ui') && isset($items['admin/structure/field_collections/%field_collection_field_name/fields'])) {
     // Make the fields task the default local task.
-    $items['admin/structure/embeddables/%embeddable_field_name'] = $items['admin/structure/embeddables/%embeddable_field_name/fields'];
-    $items['admin/structure/embeddables/%embeddable_field_name']['type'] = MENU_CALLBACK;
-    $items['admin/structure/embeddables/%embeddable_field_name/fields'] = array(
+    $items['admin/structure/field_collections/%field_collection_field_name'] = $items['admin/structure/field_collections/%field_collection_field_name/fields'];
+    $items['admin/structure/field_collections/%field_collection_field_name']['type'] = MENU_CALLBACK;
+    $items['admin/structure/field_collections/%field_collection_field_name/fields'] = array(
       'title' => 'Manage fields',
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => 1,
@@ -381,21 +381,21 @@ function embeddable_menu_alter(&$items) {
 }
 
 // @todo Implement + specify @hook_entity_info().
-function embeddable_access() {
+function field_collection_access() {
   return TRUE;
 }
 
 /**
  * Implements hook_field_info().
  */
-function embeddable_field_info() {
+function field_collection_field_info() {
   return array(
-    'embeddable' => array(
-      'label' => t('Embeddable'),
+    'field_collection' => array(
+      'label' => t('field_collection'),
       'description' => t('This field stores references to embedded entities, which itself may contain any number of fields.'),
       'instance_settings' => array(),
       'default_widget' => 'hidden',
-      'default_formatter' => 'embeddable_list',
+      'default_formatter' => 'field_collection_list',
       // As of now there is now UI for setting the path.
       'settings' => array('path' => ''),
     ),
@@ -403,15 +403,15 @@ function embeddable_field_info() {
 }
 
 /**
- * Returns the base path to use for embeddables.
+ * Returns the base path to use for field_collections.
  */
-function embeddable_field_get_path($field) {
+function field_collection_field_get_path($field) {
   if (empty($field['settings']['path'])) {
     // Provide a sane default using the field name without the 'field' prefix.
     if (strpos($field['field_name'], 'field_') === 0) {
-      return 'embeddable/' . substr($field['field_name'], 6);
+      return 'field_collection/' . substr($field['field_name'], 6);
     }
-    return 'embeddable/' . $field['field_name'];
+    return 'field_collection/' . $field['field_name'];
   }
   return $field['settings']['path'];
 }
@@ -419,7 +419,7 @@ function embeddable_field_get_path($field) {
 /**
  * Implements hook_field_presave().
  */
-function embeddable_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+function field_collection_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach ($items as &$item) {
     // In case the entity has been loaded / created, save it and set the id.
     if (isset($item['entity'])) {
@@ -433,15 +433,15 @@ function embeddable_field_presave($entity_type, $entity, $field, $instance, $lan
 /**
  * Implements hook_field_delete().
  */
-function embeddable_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
+function field_collection_field_delete($entity_type, $entity, $field, $instance, $langcode, &$items) {
   // Also delete all embedded entities.
-  entity_delete_multiple('embeddable', embeddable_field_item_to_ids($items));
+  entity_delete_multiple('field_collection', field_collection_field_item_to_ids($items));
 }
 
 /**
- * Get an array of embeddable IDs stored in the given field items.
+ * Get an array of field_collection IDs stored in the given field items.
  */
-function embeddable_field_item_to_ids($items) {
+function field_collection_field_item_to_ids($items) {
   $ids = array();
   foreach ($items as $item) {
     if (!empty($item['value'])) {
@@ -454,18 +454,18 @@ function embeddable_field_item_to_ids($items) {
 /**
  * Implements hook_field_is_empty().
  */
-function embeddable_field_is_empty($item, $field) {
+function field_collection_field_is_empty($item, $field) {
   return empty($item['value']);
 }
 
 /**
  * Implements hook_field_formatter_info().
  */
-function embeddable_field_formatter_info() {
+function field_collection_field_formatter_info() {
   return array(
-    'embeddable_list' => array(
-      'label' => t('List embeddables'),
-      'field types' => array('embeddable'),
+    'field_collection_list' => array(
+      'label' => t('List field_collections'),
+      'field types' => array('field_collection'),
       'settings' =>  array(
         'edit' => t('Edit'),
         'delete' => t('Delete'),
@@ -478,7 +478,7 @@ function embeddable_field_formatter_info() {
 /**
  * Implements hook_field_formatter_settings_form().
  */
-function embeddable_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+function field_collection_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
@@ -506,7 +506,7 @@ function embeddable_field_formatter_settings_form($field, $instance, $view_mode,
 /**
  * Implements hook_field_formatter_settings_summary().
  */
-function embeddable_field_formatter_settings_summary($field, $instance, $view_mode) {
+function field_collection_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
@@ -522,22 +522,22 @@ function embeddable_field_formatter_settings_summary($field, $instance, $view_mo
 /**
  * Implements hook_field_formatter_view().
  */
-function embeddable_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function field_collection_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   $settings = $display['settings'];
 
   switch ($display['type']) {
-    case 'embeddable_list':
+    case 'field_collection_list':
 
       foreach ($items as $delta => $item) {
-        $embeddable = isset($item['entity']) ? $item['entity'] : embeddable_load($item['value']);
+        $field_collection = isset($item['entity']) ? $item['entity'] : field_collection_load($item['value']);
 
-        if ($embeddable) {
-          $output = l($embeddable->label(), $embeddable->path());
+        if ($field_collection) {
+          $output = l($field_collection->label(), $field_collection->path());
           $links = array();
           foreach (array('edit', 'delete') as $op) {
             if ($settings[$op]) {
-              $links[] = l($settings[$op], $embeddable->path() . '/' . $op, array('query' => drupal_get_destination()));
+              $links[] = l($settings[$op], $field_collection->path() . '/' . $op, array('query' => drupal_get_destination()));
             }
           }
           if ($links) {
@@ -547,10 +547,10 @@ function embeddable_field_formatter_view($entity_type, $entity, $field, $instanc
         }
       }
       if ($settings['add'] && ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || count($items) < $field['cardinality'])) {
-        $path = embeddable_field_get_path($field);
+        $path = field_collection_field_get_path($field);
         list($id) = entity_extract_ids($entity_type, $entity);
         $add_path = $path . '/add/' . strtr($field['field_name'], array('_' => '-')) . '/' . $entity_type . '/' . $id;
-        $element['#suffix'] = '<div class="embeddable-list-add">' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</div>";
+        $element['#suffix'] = '<div class="field_collection-list-add">' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</div>";
       }
       break;
   }
@@ -560,11 +560,11 @@ function embeddable_field_formatter_view($entity_type, $entity, $field, $instanc
 /**
  * Implements hook_field_widget_info().
  */
-function embeddable_field_widget_info() {
+function field_collection_field_widget_info() {
   return array(
-    'embeddable_hidden' => array(
+    'field_collection_hidden' => array(
       'label' => t('Hidden'),
-      'field types' => array('embeddable'),
+      'field types' => array('field_collection'),
     ),
   );
 }
@@ -572,8 +572,8 @@ function embeddable_field_widget_info() {
 /**
  * Implements hook_field_create_field().
  */
-function embeddable_field_create_field($field) {
-  if ($field['type'] == 'embeddable') {
+function field_collection_field_create_field($field) {
+  if ($field['type'] == 'field_collection') {
     // Clear caches.
     entity_info_cache_clear();
     menu_rebuild();

@@ -3,13 +3,13 @@
 
 /**
  * @file
- * Provides the embeddable module admin pages.
+ * Provides the field_collection module admin pages.
  */
 
 /**
- * Menu callback; list all embeddables on this site.
+ * Menu callback; list all field collections on this site.
  */
-function embeddables_overview() {
+function field_collections_overview() {
   $instances = field_info_instances();
   $field_types = field_info_field_types();
   $bundles = field_info_bundles();
@@ -19,7 +19,7 @@ function embeddables_overview() {
     foreach ($type_bundles as $bundle => $bundle_instances) {
       foreach ($bundle_instances as $field_name => $instance) {
         $field = field_info_field($field_name);
-        if ($field['type'] == 'embeddable') {
+        if ($field['type'] == 'field_collection') {
           $admin_path = _field_ui_bundle_admin_path($entity_type, $bundle);
           $rows[$field_name]['class'] = $field['locked'] ? array('menu-disabled') : array('');
 
@@ -33,11 +33,11 @@ function embeddables_overview() {
     $rows[$field_name]['data'][1] = implode(', ', $cell['data'][1]);
 
     $field_name_url_str = strtr($field_name, array('_' => '-'));
-    $rows[$field_name]['data'][2] = l(t('manage fields'), 'admin/structure/embeddables/' . $field_name_url_str . '/fields');
-    $rows[$field_name]['data'][3] = l(t('manage display'), 'admin/structure/embeddables/' . $field_name_url_str . '/display');
+    $rows[$field_name]['data'][2] = l(t('manage fields'), 'admin/structure/field_collections/' . $field_name_url_str . '/fields');
+    $rows[$field_name]['data'][3] = l(t('manage display'), 'admin/structure/field_collections/' . $field_name_url_str . '/display');
   }
   if (empty($rows)) {
-    $output = t('No embeddables have been defined yet. To do so create attach an embeddable field to any entity.');
+    $output = t('No field_collections have been defined yet. To do so create attach an field_collection field to any entity.');
   }
   else {
     // Sort rows by field name.

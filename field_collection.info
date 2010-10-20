@@ -1,11 +1,11 @@
 ; $Id$
-name = Embeddables
-description = Provides a field for embedding entites, which itself may have any number of fields.
+name = Field collection
+description = Provides a field-collection field, to which any number of fields can be attached.
 package = Core
 version = VERSION
 core = 7.x
 dependencies[] = entity
 dependencies[] = entity_metadata
-files[] = embeddable.module
-files[] = embeddable.test
-files[] = embeddable.pages.inc
+files[] = field_collection.module
+files[] = field_collection.test
+files[] = field_collection.pages.inc
