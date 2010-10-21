@@ -301,8 +301,8 @@ function field_collection_menu() {
   $items = array();
   if (module_exists('field_ui')) {
     $items['admin/structure/field_collections'] = array(
-      'title' => 'field_collections',
-      'description' => 'Manage fields on field_collections.',
+      'title' => 'Field collections',
+      'description' => 'Manage fields on field collections.',
       'page callback' => 'field_collections_overview',
       //@todo add a separate permission?
       'access arguments' => array('administer content types'),
