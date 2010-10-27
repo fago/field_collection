@@ -579,3 +579,20 @@ function field_collection_field_create_field($field) {
     menu_rebuild();
   }
 }
+
+
+/**
+ * Implements hook_features_pipe_component_alter() for fields.
+ */
+function field_collection_features_pipe_field_alter(&$pipe, $data, $export) {
+  // Add the fields of the field-collection entity to the pipe.
+  foreach ($data as $identifier) {
+    if (($field = features_field_load($identifier)) && $field['field_config']['type'] == 'field_collection') {
+      $fields = field_info_instances('field_collection', $field['field_config']['field_name']);
+      foreach ($fields as $name => $field) {
+        $pipe['field'][] = "{$field['entity_type']}-{$field['bundle']}-{$field['field_name']}";
+      }
+    }
+  }
+}
+
