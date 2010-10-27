@@ -37,7 +37,7 @@ function field_collections_overview() {
     $rows[$field_name]['data'][3] = l(t('manage display'), 'admin/structure/field_collections/' . $field_name_url_str . '/display');
   }
   if (empty($rows)) {
-    $output = t('No field_collections have been defined yet. To do so create attach an field_collection field to any entity.');
+    $output = t('No field-collections have been defined yet. To do so attach a field-collection field to any entity.');
   }
   else {
     // Sort rows by field name.

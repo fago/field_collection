@@ -14,7 +14,7 @@ function field_collection_help($path, $arg) {
     case 'admin/help#field_collection':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('The field_collection module provides a field for embedding entites, which itself may have any number of fields. See the <a href="@field-help">Field module help page</a> for more information about fields.', array('@field-help' => url('admin/help/field'))) . '</p>';
+      $output .= '<p>' . t('The field-collection module provides a field for embedding entites, which itself may have any number of fields. See the <a href="@field-help">Field module help page</a> for more information about fields.', array('@field-help' => url('admin/help/field'))) . '</p>';
       return $output;
   }
 }
@@ -24,7 +24,7 @@ function field_collection_help($path, $arg) {
  */
 function field_collection_entity_info() {
   $return['field_collection'] = array(
-    'label' => t('field_collection'),
+    'label' => t('Field-collection'),
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
     'entity class' => 'FieldCollectionEntity',
@@ -50,7 +50,7 @@ function field_collection_entity_info_alter(&$info) {
   foreach (field_info_fields() as $field_name => $field) {
     if ($field['type'] == 'field_collection') {
       $info['field_collection']['bundles'][$field_name] = array(
-        'label' => t('field_collection @field', array('@field' => $field_name)),
+        'label' => t('Field-collection @field', array('@field' => $field_name)),
         'admin' => array(
           'path' => 'admin/structure/field_collections/%field_collection_field_name',
           'real path' => 'admin/structure/field_collections/' . strtr($field_name, array('_' => '-')),
@@ -129,7 +129,7 @@ class FieldCollectionEntity extends EntityDB {
         return t('New @instance_label', array('@instance_label' => $instance['label']));
       }
     }
-    return t('Unconnected field_collection');
+    return t('Unconnected field-collection');
   }
 
   /**
@@ -301,8 +301,8 @@ function field_collection_menu() {
   $items = array();
   if (module_exists('field_ui')) {
     $items['admin/structure/field_collections'] = array(
-      'title' => 'Field collections',
-      'description' => 'Manage fields on field collections.',
+      'title' => 'Field-collections',
+      'description' => 'Manage fields on field-collections.',
       'page callback' => 'field_collections_overview',
       //@todo add a separate permission?
       'access arguments' => array('administer content types'),

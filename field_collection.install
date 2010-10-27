@@ -12,12 +12,12 @@
 function field_collection_schema() {
 
   $schema['field_collection'] = array(
-    'description' => 'Stores information about field_collections.',
+    'description' => 'Stores information about field-collections.',
     'fields' => array(
       'id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => 'Primary Key: Unique field_collection ID.',
+        'description' => 'Primary Key: Unique field-collection ID.',
       ),
       'field_name' => array(
         'description' => 'The name of the field on the host entity embedding this entity.',
