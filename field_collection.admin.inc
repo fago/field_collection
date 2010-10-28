@@ -33,8 +33,8 @@ function field_collections_overview() {
     $rows[$field_name]['data'][1] = implode(', ', $cell['data'][1]);
 
     $field_name_url_str = strtr($field_name, array('_' => '-'));
-    $rows[$field_name]['data'][2] = l(t('manage fields'), 'admin/structure/field_collections/' . $field_name_url_str . '/fields');
-    $rows[$field_name]['data'][3] = l(t('manage display'), 'admin/structure/field_collections/' . $field_name_url_str . '/display');
+    $rows[$field_name]['data'][2] = l(t('manage fields'), 'admin/structure/field-collections/' . $field_name_url_str . '/fields');
+    $rows[$field_name]['data'][3] = l(t('manage display'), 'admin/structure/field-collections/' . $field_name_url_str . '/display');
   }
   if (empty($rows)) {
     $output = t('No field-collections have been defined yet. To do so attach a field-collection field to any entity.');

@@ -3,7 +3,7 @@
 
 /**
  * @file
- * Defines numeric field types.
+ * Module implementing field-collection field type.
  */
 
 /**
@@ -52,8 +52,8 @@ function field_collection_entity_info_alter(&$info) {
       $info['field_collection_item']['bundles'][$field_name] = array(
         'label' => t('Field-collection @field', array('@field' => $field_name)),
         'admin' => array(
-          'path' => 'admin/structure/field_collections/%field_collection_field_name',
-          'real path' => 'admin/structure/field_collections/' . strtr($field_name, array('_' => '-')),
+          'path' => 'admin/structure/field-collections/%field_collection_field_name',
+          'real path' => 'admin/structure/field-collections/' . strtr($field_name, array('_' => '-')),
           'bundle argument' => 3,
           // @todo: fix access.
           'access arguments' => array('administer content types'),
@@ -77,7 +77,7 @@ function field_collection_field_name_load($arg) {
  * Loads a field-collection item.
  *
  * @return field_collection_item
- *   The field_collection_item or FALSE.
+ *   The field_collection_item object or FALSE.
  */
 function field_collection_item_load($item_id) {
   $result = entity_load('field_collection_item', array($item_id));
@@ -101,14 +101,16 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Provides info about the field on the host entity, which embeds this field_collection.
+   * Provides info about the field on the host entity, which embeds this
+   * field-collection item.
    */
   public function fieldInfo() {
     return $this->fieldInfo;
   }
 
   /**
-   * Provides info of the field instance containing the reference to this field_collection.
+   * Provides info of the field instance containing the reference to this
+   * field-collection item.
    */
   public function instanceInfo() {
     if ($this->fetchHostDetails()) {
@@ -151,7 +153,7 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Returns the host entity, which embeds this field_collection.
+   * Returns the host entity, which embeds this field-collection item.
    */
   public function hostEntity() {
     if ($this->fetchHostDetails()) {
@@ -161,7 +163,8 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Returns the entity type of the host entity, which embeds this field_collection.
+   * Returns the entity type of the host entity, which embeds this
+   * field-collection item.
    */
   public function hostEntityType() {
     if ($this->fetchHostDetails()) {
@@ -170,7 +173,7 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Returns the id of the host entity, which embeds this field_collection.
+   * Returns the id of the host entity, which embeds this field-collection item.
    */
   public function hostEntityId() {
     if ($this->fetchHostDetails()) {
@@ -179,7 +182,8 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Returns the bundle of the host entity, which embeds this field_collection.
+   * Returns the bundle of the host entity, which embeds this field-collection
+   * item.
    */
   public function hostEntityBundle() {
     if ($entity = $this->hostEntity()) {
@@ -191,7 +195,7 @@ class FieldCollectionItemEntity extends EntityDB {
   protected function fetchHostDetails() {
     if (!isset($this->hostEntityId)) {
       if ($this->item_id) {
-        // For saved field_collections, the link has to be created.
+        // For saved field-collections, the link has to be created.
         $query = new EntityFieldQuery();
         $query->fieldCondition($this->fieldInfo(), 'value', $this->item_id);
         $result = $query->execute();
@@ -277,7 +281,7 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Delete the field_collection.
+   * Delete the field-collection item.
    */
   public function delete() {
     parent::delete();
@@ -301,7 +305,7 @@ class FieldCollectionItemEntity extends EntityDB {
 function field_collection_menu() {
   $items = array();
   if (module_exists('field_ui')) {
-    $items['admin/structure/field_collections'] = array(
+    $items['admin/structure/field-collections'] = array(
       'title' => 'Field-collections',
       'description' => 'Manage fields on field-collections.',
       'page callback' => 'field_collections_overview',
@@ -312,7 +316,7 @@ function field_collection_menu() {
     );
   }
 
-  // Add menu paths for viewing/editing/deleting field_collections.
+  // Add menu paths for viewing/editing/deleting field-collection items.
   foreach (field_info_fields() as $field) {
     if ($field['type'] == 'field_collection') {
       $path = field_collection_field_get_path($field);
@@ -366,14 +370,14 @@ function field_collection_menu() {
 }
 
 /**
- * Implements hook_menu_alter() to fix the field_collections admin UI tabs.
+ * Implements hook_menu_alter() to fix the field-collections admin UI tabs.
  */
 function field_collection_menu_alter(&$items) {
-  if (module_exists('field_ui') && isset($items['admin/structure/field_collections/%field_collection_field_name/fields'])) {
+  if (module_exists('field_ui') && isset($items['admin/structure/field-collections/%field_collection_field_name/fields'])) {
     // Make the fields task the default local task.
-    $items['admin/structure/field_collections/%field_collection_field_name'] = $items['admin/structure/field_collections/%field_collection_field_name/fields'];
-    $items['admin/structure/field_collections/%field_collection_field_name']['type'] = MENU_CALLBACK;
-    $items['admin/structure/field_collections/%field_collection_field_name/fields'] = array(
+    $items['admin/structure/field-collections/%field_collection_field_name'] = $items['admin/structure/field-collections/%field_collection_field_name/fields'];
+    $items['admin/structure/field-collections/%field_collection_field_name']['type'] = MENU_CALLBACK;
+    $items['admin/structure/field-collections/%field_collection_field_name/fields'] = array(
       'title' => 'Manage fields',
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => 1,
@@ -392,7 +396,7 @@ function field_collection_item_access() {
 function field_collection_field_info() {
   return array(
     'field_collection' => array(
-      'label' => t('field_collection'),
+      'label' => t('Field-collection'),
       'description' => t('This field stores references to embedded entities, which itself may contain any number of fields.'),
       'instance_settings' => array(),
       'default_widget' => 'hidden',
@@ -404,15 +408,15 @@ function field_collection_field_info() {
 }
 
 /**
- * Returns the base path to use for field_collections.
+ * Returns the base path to use for field-collection items.
  */
 function field_collection_field_get_path($field) {
   if (empty($field['settings']['path'])) {
     // Provide a sane default using the field name without the 'field' prefix.
     if (strpos($field['field_name'], 'field_') === 0) {
-      return 'field_collection/' . substr($field['field_name'], 6);
+      return 'field-collection/' . substr($field['field_name'], 6);
     }
-    return 'field_collection/' . $field['field_name'];
+    return 'field-collection/' . $field['field_name'];
   }
   return $field['settings']['path'];
 }
@@ -440,7 +444,7 @@ function field_collection_field_delete($entity_type, $entity, $field, $instance,
 }
 
 /**
- * Get an array of field_collection IDs stored in the given field items.
+ * Get an array of field-collection item IDs stored in the given field items.
  */
 function field_collection_field_item_to_ids($items) {
   $ids = array();
@@ -465,7 +469,7 @@ function field_collection_field_is_empty($item, $field) {
 function field_collection_field_formatter_info() {
   return array(
     'field_collection_list' => array(
-      'label' => t('List field_collections'),
+      'label' => t('List field-collection items'),
       'field types' => array('field_collection'),
       'settings' =>  array(
         'edit' => t('Edit'),

@@ -68,7 +68,7 @@ function field_collection_item_form_submit($form, &$form_state) {
 }
 
 /**
- * Form for deleting an field_collection.
+ * Form for deleting a field-collection item.
  */
 function field_collection_item_delete_confirm($form, &$form_state, $field_collection_item) {
   $form_state += array('field_collection_item' => $field_collection_item);
@@ -82,7 +82,7 @@ function field_collection_item_delete_confirm($form, &$form_state, $field_collec
 }
 
 /**
- * Submit callback for deleting an field_collection.
+ * Submit callback for deleting a field-collection item.
  */
 function field_collection_item_delete_confirm_submit($form, &$form_state) {
   $field_collection_item = $form_state['field_collection_item'];
@@ -92,7 +92,7 @@ function field_collection_item_delete_confirm_submit($form, &$form_state) {
 }
 
 /**
- * Add a new field_collection.
+ * Add a new field-collection item.
  */
 function field_collection_item_add($field_name, $entity_type, $entity_id) {
   $info = entity_get_info();
@@ -121,8 +121,9 @@ function field_collection_item_add($field_name, $entity_type, $entity_id) {
 
   drupal_set_title(t('Add new @instance_label', array('@instance_label' => $instance['label'])));
   $field_collection_item = entity_create('field_collection_item', array('field_name' => $field_name));
-  // Add the host entity to the field_collection such that it is picked upon save
-  // and the link between the entities is created. see field_collection::save().
+  // Add the host entity to the field-collection item such that it is picked
+  // upon save and the link between the entities is created.
+  // @see field_collection_item::save().
   $field_collection_item->host_entity = $entity;
   $field_collection_item->host_entity_type = $entity_type;
   return drupal_get_form('field_collection_item_form', $field_collection_item);
