@@ -585,6 +585,19 @@ function field_collection_field_create_field($field) {
   }
 }
 
+/**
+ * Implements hook_field_delete_field().
+ */
+function field_collection_field_delete_field($field) {
+  if ($field['type'] == 'field_collection') {
+    // Notify field.module that field-collection was deleted.
+    field_attach_delete_bundle('field_collection_item', $field['field_name']);
+
+    // Clear caches.
+    entity_info_cache_clear();
+    menu_rebuild();
+  }
+}
 
 /**
  * Implements hook_features_pipe_component_alter() for fields.
