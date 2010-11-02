@@ -410,6 +410,9 @@ function field_collection_theme() {
       'render element' => 'elements',
       'template' => 'field_collection_item',
     ),
+    'field_collection_view' => array(
+      'render element' => 'element',
+    ),
   );
 }
 
@@ -588,6 +591,9 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
       foreach ($items as $delta => $item) {
         if ($field_collection = isset($item['entity']) ? $item['entity'] : field_collection_item_load($item['value'])) {
           $element[$delta]['entity'] = $field_collection->view();
+          $element[$delta]['#theme_wrappers'] = array('field_collection_view');
+          $element[$delta]['#attributes']['class'][] = 'field-collection-view';
+          $element[$delta]['#attributes']['class'][] = 'clearfix';
 
           $links = array(
             '#theme' => 'links__field_collection_view',
@@ -615,6 +621,15 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
     $element['#suffix'] = '<div class="field_collection-list-add">' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</div>";
   }
   return $element;
+}
+
+/**
+ * Themes field collection items printed using the field_collection_view formatter.
+ */
+function theme_field_collection_view($variables) {
+  $element = $variables['element'];
+  drupal_add_css(drupal_get_path('module', 'field_collection') . '/field_collection_view.css');
+  return '<div' . drupal_attributes($element['#attributes']) . '>' . $element['#children'] . '</div>';
 }
 
 /**

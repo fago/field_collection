@@ -1,0 +1,15 @@
+@CHARSET "UTF-8";
+
+.field-collection-view {
+  margin-left: 1em;
+  padding: 1em:
+}
+
+.field-collection-view .entity-field-collection-item {
+  float: left; 
+}
+
+ul.field-collection-view-links {
+  float: left;
+  width: 60px;
+}
