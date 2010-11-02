@@ -36,6 +36,12 @@ function field_collection_entity_info() {
       'bundle' => 'field_name',
     ),
     'module' => 'field_collection',
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+       ),
+    ),
   );
   return $return;
 }
@@ -124,11 +130,15 @@ class FieldCollectionItemEntity extends EntityDB {
   public function label() {
     // @todo make configurable.
     if ($instance = $this->instanceInfo()) {
-      if ($this->item_id) {
-        return t('@instance_label @count', array('@instance_label' => $instance['label'], '@count' => $this->delta() + 1));
+      $field = $this->fieldInfo();
+      if ($field['cardinality'] == 1) {
+        return $instance['label'];
+      }
+      elseif ($this->item_id) {
+        return t('!instance_label @count', array('!instance_label' => $instance['label'], '@count' => $this->delta() + 1));
       }
       else {
-        return t('New @instance_label', array('@instance_label' => $instance['label']));
+        return t('New !instance_label', array('!instance_label' => $instance['label']));
       }
     }
     return t('Unconnected field-collection item');
@@ -400,7 +410,7 @@ function field_collection_field_info() {
       'description' => t('This field stores references to embedded entities, which itself may contain any number of fields.'),
       'instance_settings' => array(),
       'default_widget' => 'hidden',
-      'default_formatter' => 'field_collection_list',
+      'default_formatter' => 'field_collection_view',
       // As of now there is now UI for setting the path.
       'settings' => array('path' => ''),
     ),
@@ -477,6 +487,15 @@ function field_collection_field_formatter_info() {
         'add' => t('Add'),
       ),
     ),
+    'field_collection_view' => array(
+      'label' => t('View field-collection items'),
+      'field types' => array('field_collection'),
+      'settings' =>  array(
+        'edit' => t('Edit'),
+        'delete' => t('Delete'),
+        'add' => t('Add'),
+      ),
+    ),
   );
 }
 
@@ -535,9 +554,7 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
     case 'field_collection_list':
 
       foreach ($items as $delta => $item) {
-        $field_collection = isset($item['entity']) ? $item['entity'] : field_collection_item_load($item['value']);
-
-        if ($field_collection) {
+        if ($field_collection = isset($item['entity']) ? $item['entity'] : field_collection_item_load($item['value'])) {
           $output = l($field_collection->label(), $field_collection->path());
           $links = array();
           foreach (array('edit', 'delete') as $op) {
@@ -551,13 +568,38 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
           $element[$delta] = array('#markup' => $output);
         }
       }
-      if ($settings['add'] && ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || count($items) < $field['cardinality'])) {
-        $path = field_collection_field_get_path($field);
-        list($id) = entity_extract_ids($entity_type, $entity);
-        $add_path = $path . '/add/' . strtr($field['field_name'], array('_' => '-')) . '/' . $entity_type . '/' . $id;
-        $element['#suffix'] = '<div class="field_collection-list-add">' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</div>";
+      break;
+
+    case 'field_collection_view':
+
+      foreach ($items as $delta => $item) {
+        if ($field_collection = isset($item['entity']) ? $item['entity'] : field_collection_item_load($item['value'])) {
+          $element[$delta]['entity'] = $field_collection->view();
+
+          $links = array(
+            '#theme' => 'links__field_collection_view',
+          );
+          $links['#attributes']['class'][] = 'field-collection-view-links';
+          foreach (array('edit', 'delete') as $op) {
+            if ($settings[$op]) {
+              $links['#links'][$op] = array(
+                'title' => $settings[$op],
+                'href' => $field_collection->path() . '/' . $op,
+                'query' => drupal_get_destination(),
+              );
+            }
+          }
+          $element[$delta]['links'] = $links;
+        }
       }
       break;
+  }
+
+  if ($settings['add'] && ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || count($items) < $field['cardinality'])) {
+    $path = field_collection_field_get_path($field);
+    list($id) = entity_extract_ids($entity_type, $entity);
+    $add_path = $path . '/add/' . strtr($field['field_name'], array('_' => '-')) . '/' . $entity_type . '/' . $id;
+    $element['#suffix'] = '<div class="field_collection-list-add">' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</div>";
   }
   return $element;
 }

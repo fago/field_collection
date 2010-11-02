@@ -119,7 +119,8 @@ function field_collection_item_add($field_name, $entity_type, $entity_id) {
     return '';
   }
 
-  drupal_set_title(t('Add new @instance_label', array('@instance_label' => $instance['label'])));
+  $title = ($field['cardinality'] == 1) ? $instance['label'] : t('Add new !instance_label', array('!instance_label' => drupal_strtolower($instance['label'])));
+  drupal_set_title($title);
   $field_collection_item = entity_create('field_collection_item', array('field_name' => $field_name));
   // Add the host entity to the field-collection item such that it is picked
   // upon save and the link between the entities is created.
