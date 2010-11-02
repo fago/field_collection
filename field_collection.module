@@ -400,6 +400,19 @@ function field_collection_item_access() {
   return TRUE;
 }
 
+
+/**
+ * Implements hook_theme().
+ */
+function field_collection_theme() {
+  return array(
+    'field_collection_item' => array(
+      'render element' => 'elements',
+      'template' => 'field_collection_item',
+    ),
+  );
+}
+
 /**
  * Implements hook_field_info().
  */
