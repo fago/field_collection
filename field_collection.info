@@ -1,7 +1,6 @@
 ; $Id$
 name = Field collection
 description = Provides a field-collection field, to which any number of fields can be attached.
-package = Core
 version = VERSION
 core = 7.x
 dependencies[] = entity
