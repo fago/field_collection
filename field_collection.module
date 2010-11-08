@@ -591,6 +591,7 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
 
     case 'field_collection_view':
 
+      $element['#attached']['css'][] = drupal_get_path('module', 'field_collection') . '/field_collection_view.css';
       foreach ($items as $delta => $item) {
         if ($field_collection = isset($item['entity']) ? $item['entity'] : field_collection_item_load($item['value'])) {
           $element[$delta]['entity'] = $field_collection->view();
@@ -621,8 +622,17 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
     $path = field_collection_field_get_path($field);
     list($id) = entity_extract_ids($entity_type, $entity);
     $add_path = $path . '/add/' . strtr($field['field_name'], array('_' => '-')) . '/' . $entity_type . '/' . $id;
-    $element['#suffix'] = '<div class="field_collection-list-add">' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</div>";
+    $element['#suffix'] = '<ul class="action-links action-links-field-collection-add"><li>' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</li></ul>";
   }
+  else {
+    $index = count(element_children($element)) - 1;
+    $element[$index]['#attributes']['class'][] = 'field-collection-view-final';
+  }
+
+  $element += array('#prefix' => '', '#suffix' => '');
+  $element['#prefix'] .= '<div class="field-collection-container clearfix">';
+  $element['#suffix'] .= '</div>';
+
   return $element;
 }
 
@@ -631,7 +641,6 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
  */
 function theme_field_collection_view($variables) {
   $element = $variables['element'];
-  drupal_add_css(drupal_get_path('module', 'field_collection') . '/field_collection_view.css');
   return '<div' . drupal_attributes($element['#attributes']) . '>' . $element['#children'] . '</div>';
 }
 
