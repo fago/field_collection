@@ -429,6 +429,9 @@ function field_collection_field_info() {
       'default_formatter' => 'field_collection_view',
       // As of now there is now UI for setting the path.
       'settings' => array('path' => ''),
+      // Add entity metadata.
+      'property_type' => 'field_collection_item',
+      'property_callbacks' => array('field_collection_entity_metadata_property_callback'),
     ),
   );
 }
@@ -684,3 +687,13 @@ function field_collection_features_pipe_field_alter(&$pipe, $data, $export) {
   }
 }
 
+/**
+ * Callback for generating entity metadata property info for our field instances.
+ *
+ * @see field_collection_field_info()
+ */
+function field_collection_entity_metadata_property_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
+  // Set the bundle as we know it is the name of the field.
+  $property['bundle'] = $field['field_name'];
+}
