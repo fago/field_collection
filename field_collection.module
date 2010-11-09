@@ -349,7 +349,7 @@ function field_collection_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('field_collection_item_form', $count),
         'access callback' => 'field_collection_item_access',
-        'access arguments' => array('view', $count),
+        'access arguments' => array('update', $count),
         'title' => 'Edit',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -359,7 +359,7 @@ function field_collection_menu() {
         'page callback' => 'drupal_get_form',
         'page arguments' => array('field_collection_item_delete_confirm', $count),
         'access callback' => 'field_collection_item_access',
-        'access arguments' => array('view', $count),
+        'access arguments' => array('delete', $count),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_INLINE,
@@ -369,7 +369,7 @@ function field_collection_menu() {
         'page callback' => 'field_collection_item_add',
         'page arguments' => array($count + 1, $count + 2, $count + 3),
         'access callback' => 'field_collection_item_access',
-        'access arguments' => array('view', $count),
+        'access arguments' => array('create'),
         'title' => 'Delete',
         'type' => MENU_LOCAL_TASK,
         'context' => MENU_CONTEXT_INLINE,
@@ -396,11 +396,29 @@ function field_collection_menu_alter(&$items) {
   }
 }
 
-// @todo Implement + specify @hook_entity_info().
-function field_collection_item_access() {
-  return TRUE;
+/**
+ * Determines whether the given user has access to a field collection.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'.
+ * @param $item
+ *   Optionally a field collection item. If nothing is given, access for all
+ *   items is determined.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ *   Whether access is allowed or not.
+ */
+function field_collection_item_access($op, FieldCollectionItemEntity $item = NULL, $account = NULL) {
+  if (!isset($item)) {
+    // @todo: Implement admin permission 'administer field collection items' ?
+    return $op == 'create';
+  }
+  $op = $op == 'view' ? 'view' : 'edit';
+  // Access is determined by the entity and field containing the reference.
+  $entity_access = entity_metadata_entity_access($op == 'view' ? 'view' : 'update', $item->hostEntityType(), $item->hostEntity(), $account);
+  return $entity_access && field_access($op, $item->field_name, $item->hostEntityType(), $item->hostEntity(), $account);
 }
-
 
 /**
  * Implements hook_theme().
