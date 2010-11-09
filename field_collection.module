@@ -42,6 +42,7 @@ function field_collection_entity_info() {
         'custom settings' => FALSE,
        ),
     ),
+    'access callback' => 'field_collection_item_access',
   );
   return $return;
 }
