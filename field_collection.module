@@ -505,6 +505,7 @@ function field_collection_field_formatter_info() {
         'edit' => t('Edit'),
         'delete' => t('Delete'),
         'add' => t('Add'),
+        'description' => TRUE,
       ),
     ),
     'field_collection_view' => array(
@@ -514,6 +515,7 @@ function field_collection_field_formatter_info() {
         'edit' => t('Edit'),
         'delete' => t('Delete'),
         'add' => t('Add'),
+        'description' => TRUE,
       ),
     ),
   );
@@ -544,6 +546,12 @@ function field_collection_field_formatter_settings_form($field, $instance, $view
     '#default_value' => $settings['add'],
     '#description' => t('Leave the title empty, to hide the link.'),
   );
+  $form['description'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show the field description beside the add link.'),
+    '#default_value' => $settings['description'],
+    '#description' => t('If enabeld adn the add link is shown, the field description is shown in front of the add link.'),
+  );
   return $form;
 }
 
@@ -554,7 +562,7 @@ function field_collection_field_formatter_settings_summary($field, $instance, $v
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
-  $links = array_filter($settings);
+  $links = array_filter(array_intersect_key($settings, array_flip(array('add', 'edit', 'delete'))));
   if ($links) {
     return '<em>Links:</em> ' . check_plain(implode(', ', $links));
   }
@@ -622,8 +630,12 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
   if ($settings['add'] && ($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || count($items) < $field['cardinality'])) {
     $path = field_collection_field_get_path($field);
     list($id) = entity_extract_ids($entity_type, $entity);
+    $element['#suffix'] = '';
+    if (!empty($settings['description'])) {
+      $element['#suffix'] .= '<div class="description field-collection-description">' . field_filter_xss($instance['description']) . '</div>';
+    }
     $add_path = $path . '/add/' . strtr($field['field_name'], array('_' => '-')) . '/' . $entity_type . '/' . $id;
-    $element['#suffix'] = '<ul class="action-links action-links-field-collection-add"><li>' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</li></ul>";
+    $element['#suffix'] .= '<ul class="action-links action-links-field-collection-add"><li>' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</li></ul>";
   }
   else {
     $index = count(element_children($element)) - 1;
