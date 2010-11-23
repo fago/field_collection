@@ -126,9 +126,9 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
-   * Returns the label.
+   * Specifies the default label, which is picked up by label() by default.
    */
-  public function label() {
+  protected function defaultLabel() {
     // @todo make configurable.
     if ($instance = $this->instanceInfo()) {
       $field = $this->fieldInfo();
