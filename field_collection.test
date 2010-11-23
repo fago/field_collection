@@ -51,21 +51,21 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
   function testCRUD() {
     $node = $this->drupalCreateNode(array('type' => 'article'));
     // Manually create an field_collection.
-    $entity = entity_create('field_collection', array('field_name' => $this->field_name));
+    $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
     $entity->save('node', $node);
 
     $node = node_load($node->nid, NULL, TRUE);
-    $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An field_collection has been successfully created.');
+    $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An field_collection has been successfully created.');
 
     // Test adding an additional field_collection during node edit.
-    $entity2 = entity_create('field_collection', array('field_name' => $this->field_name));
+    $entity2 = entity_create('field_collection_item', array('field_name' => $this->field_name));
     $node->{$this->field_name}[LANGUAGE_NONE][] = array('entity' => $entity2);
     node_save($node);
 
     $node = node_load($node->nid, NULL, TRUE);
-    $this->assertTrue(!empty($entity2->id), 'field_collection has been saved.');
-    $this->assertEqual($entity->id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
-    $this->assertEqual($entity2->id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New field_collection has been properly referenced');
+    $this->assertTrue(!empty($entity2->item_id), 'field_collection has been saved.');
+    $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'Existing reference has been kept during update.');
+    $this->assertEqual($entity2->item_id, $node->{$this->field_name}[LANGUAGE_NONE][1]['value'], 'New field_collection has been properly referenced');
 
     // Make sure deleting the field_collection removes the reference.
     $entity2->delete();
@@ -73,7 +73,7 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
 
     // Make sure field_collections are removed during deletion of the host.
     node_delete($node->nid);
-    $this->assertTrue(entity_load('field_collection', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
+    $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
   }
 
 
