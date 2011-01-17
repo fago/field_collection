@@ -366,8 +366,8 @@ function field_collection_menu() {
       $items[$path . '/add/%field_collection_field_name/%/%'] = array(
         'page callback' => 'field_collection_item_add',
         'page arguments' => array($count + 1, $count + 2, $count + 3),
-        'access callback' => 'field_collection_item_access',
-        'access arguments' => array('create'),
+        // The pace callback takes care of checking access itself.
+        'access callback' => TRUE,
         'file' => 'field_collection.pages.inc',
       );
     }

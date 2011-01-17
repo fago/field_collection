@@ -93,8 +93,10 @@ function field_collection_item_delete_confirm_submit($form, &$form_state) {
 
 /**
  * Add a new field-collection item.
+ *
+ * @todo: Support optionally passing in the revision_id and langcode parameters.
  */
-function field_collection_item_add($field_name, $entity_type, $entity_id) {
+function field_collection_item_add($field_name, $entity_type, $entity_id, $revision_id = NULL, $langcode = NULL) {
   $info = entity_get_info();
   if (!isset($info[$entity_type])) {
     return MENU_NOT_FOUND;
@@ -113,8 +115,8 @@ function field_collection_item_add($field_name, $entity_type, $entity_id) {
 
   // Check field cardinality.
   $field = field_info_field($field_name);
-  // @todo: Support language specific fields?
-  if (!($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || !isset($entity->{$field_name}[LANGUAGE_NONE]) || count($entity->{$field_name}[LANGUAGE_NONE]) < $field['cardinality'])) {
+  $langcode = LANGUAGE_NONE;
+  if (!($field['cardinality'] == FIELD_CARDINALITY_UNLIMITED || !isset($entity->{$field_name}[$langcode]) || count($entity->{$field_name}[$langcode]) < $field['cardinality'])) {
     drupal_set_message(t('Too many items.'), 'error');
     return '';
   }
@@ -123,15 +125,15 @@ function field_collection_item_add($field_name, $entity_type, $entity_id) {
   drupal_set_title($title);
   $field_collection_item = entity_create('field_collection_item', array('field_name' => $field_name));
 
-  // @todo: add access check.
-  //if (!field_collection_item_access('create', $field_collection_item)) {
-  //  return MENU_ACCESS_DENIED;
-  //}
-
   // Add the host entity to the field-collection item such that it is picked
   // upon save and the link between the entities is created.
   // @see field_collection_item::save().
   $field_collection_item->host_entity = $entity;
   $field_collection_item->host_entity_type = $entity_type;
+
+  // Make sure the current user has access to create a field collection item.
+  if (!field_collection_item_access('create', $field_collection_item)) {
+    return MENU_ACCESS_DENIED;
+  }
   return drupal_get_form('field_collection_item_form', $field_collection_item);
 }
