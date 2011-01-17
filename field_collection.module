@@ -277,7 +277,7 @@ class FieldCollectionItemEntity extends EntityDB {
 
         $lang = isset($this->language) ? $this->language : LANGUAGE_NONE;
         $host_entity->{$this->field_name}[$lang][] = array('value' => $this->item_id);
-        entity_metadata_entity_save($host_entity_type, $host_entity);
+        entity_save($host_entity_type, $host_entity);
       }
       // @todo: Should we implement a "garbage collector" for field_collections that
       // somehow were not properly embedded due to the host entity never has
@@ -305,7 +305,7 @@ class FieldCollectionItemEntity extends EntityDB {
           }
         }
       }
-      entity_metadata_entity_save($this->hostEntityType(), $entity);
+      entity_save($this->hostEntityType(), $entity);
     }
   }
 }
@@ -416,7 +416,7 @@ function field_collection_item_access($op, FieldCollectionItemEntity $item = NUL
   }
   $op = $op == 'view' ? 'view' : 'edit';
   // Access is determined by the entity and field containing the reference.
-  $entity_access = entity_metadata_entity_access($op == 'view' ? 'view' : 'update', $item->hostEntityType(), $item->hostEntity(), $account);
+  $entity_access = entity_access($op == 'view' ? 'view' : 'update', $item->hostEntityType(), $item->hostEntity(), $account);
   return $entity_access && field_access($op, $item->field_name, $item->hostEntityType(), $item->hostEntity(), $account);
 }
 
@@ -446,9 +446,9 @@ function field_collection_field_info() {
       'instance_settings' => array(),
       'default_widget' => 'hidden',
       'default_formatter' => 'field_collection_view',
-      // As of now there is now UI for setting the path.
+      // As of now there is no UI for setting the path.
       'settings' => array('path' => ''),
-      // Add entity metadata.
+      // Add entity property info.
       'property_type' => 'field_collection_item',
       'property_callbacks' => array('field_collection_entity_metadata_property_callback'),
     ),
