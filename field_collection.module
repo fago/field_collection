@@ -382,13 +382,25 @@ function field_collection_menu_alter(&$items) {
   if (module_exists('field_ui') && isset($items['admin/structure/field-collections/%field_collection_field_name/fields'])) {
     // Make the fields task the default local task.
     $items['admin/structure/field-collections/%field_collection_field_name'] = $items['admin/structure/field-collections/%field_collection_field_name/fields'];
-    $items['admin/structure/field-collections/%field_collection_field_name']['type'] = MENU_CALLBACK;
+    $item = &$items['admin/structure/field-collections/%field_collection_field_name'];
+    $item['type'] = MENU_NORMAL_ITEM;
+    $item['title'] = 'Manage fields';
+    $item['title callback'] = 'field_collection_admin_page_title';
+    $item['title arguments'] = array(3);
+
     $items['admin/structure/field-collections/%field_collection_field_name/fields'] = array(
       'title' => 'Manage fields',
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => 1,
     );
   }
+}
+
+/**
+ * Menu title callback.
+ */
+function field_collection_admin_page_title($field_name) {
+  return t('Field collection @field_name', array('@field_name' => $field_name));
 }
 
 /**
