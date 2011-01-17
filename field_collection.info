@@ -4,3 +4,4 @@ description = Provides a field-collection field, to which any number of fields c
 core = 7.x
 dependencies[] = entity
 files[] = field_collection.test
+configure = admin/structure/field-collections
