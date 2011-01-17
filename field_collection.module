@@ -62,8 +62,7 @@ function field_collection_entity_info_alter(&$info) {
           'path' => 'admin/structure/field-collections/%field_collection_field_name',
           'real path' => 'admin/structure/field-collections/' . strtr($field_name, array('_' => '-')),
           'bundle argument' => 3,
-          // @todo: fix access.
-          'access arguments' => array('administer content types'),
+          'access arguments' => array('administer field-collections'),
         ),
       );
     }
@@ -214,7 +213,7 @@ class FieldCollectionItemEntity extends EntityDB {
         $this->hostEntityId = $data ? key($data) : FALSE;
       }
       elseif (isset($this->host_entity_type) && isset($this->host_entity)) {
-        // During creationg, read the public host entity properties.
+        // During creation, read the public host entity properties.
         // See field_collection::save().
         $this->hostEntityType = $this->host_entity_type;
         list($this->hostEntityId) = entity_extract_ids($this->hostEntityType, $this->host_entity);
@@ -320,8 +319,7 @@ function field_collection_menu() {
       'title' => 'Field-collections',
       'description' => 'Manage fields on field-collections.',
       'page callback' => 'field_collections_overview',
-      //@todo add a separate permission?
-      'access arguments' => array('administer content types'),
+      'access arguments' => array('administer field-collections'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'field_collection.admin.inc',
     );
@@ -370,9 +368,6 @@ function field_collection_menu() {
         'page arguments' => array($count + 1, $count + 2, $count + 3),
         'access callback' => 'field_collection_item_access',
         'access arguments' => array('create'),
-        'title' => 'Delete',
-        'type' => MENU_LOCAL_TASK,
-        'context' => MENU_CONTEXT_INLINE,
         'file' => 'field_collection.pages.inc',
       );
     }
@@ -397,6 +392,18 @@ function field_collection_menu_alter(&$items) {
 }
 
 /**
+ * Implements hook_permission().
+ */
+function field_collection_permission() {
+  return array(
+    'administer field-collections' =>  array(
+      'title' => t('Administer field-collections'),
+      'description' => t('Create and delete fields on field-collections.'),
+    ),
+  );
+}
+
+/**
  * Determines whether the given user has access to a field collection.
  *
  * @param $op
@@ -410,9 +417,11 @@ function field_collection_menu_alter(&$items) {
  *   Whether access is allowed or not.
  */
 function field_collection_item_access($op, FieldCollectionItemEntity $item = NULL, $account = NULL) {
+  if (user_access('administer field-collections', $account)) {
+    return TRUE;
+  }
   if (!isset($item)) {
-    // @todo: Implement admin permission 'administer field collection items' ?
-    return $op == 'create';
+    return FALSE;
   }
   $op = $op == 'view' ? 'view' : 'edit';
   // Access is determined by the entity and field containing the reference.
