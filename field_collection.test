@@ -75,7 +75,6 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     node_delete($node->nid);
     $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
   }
-
-
-
 }
+
+
