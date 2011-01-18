@@ -52,7 +52,8 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
     $node = $this->drupalCreateNode(array('type' => 'article'));
     // Manually create an field_collection.
     $entity = entity_create('field_collection_item', array('field_name' => $this->field_name));
-    $entity->save('node', $node);
+    $entity->setHostEntity('node', $node);
+    $entity->save();
 
     $node = node_load($node->nid, NULL, TRUE);
     $this->assertEqual($entity->item_id, $node->{$this->field_name}[LANGUAGE_NONE][0]['value'], 'An field_collection has been successfully created.');
@@ -69,6 +70,7 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
 
     // Make sure deleting the field_collection removes the reference.
     $entity2->delete();
+    $node = node_load($node->nid, NULL, TRUE);
     $this->assertTrue(!isset($node->{$this->field_name}[LANGUAGE_NONE][1]), 'Reference correctly deleted.');
 
     // Make sure field_collections are removed during deletion of the host.

@@ -95,7 +95,9 @@ function field_collection_item_load($item_id) {
  */
 class FieldCollectionItemEntity extends EntityDB {
 
-  protected $fieldInfo, $hostEntityId, $hostEntityType;
+  protected $fieldInfo, $hostEntity, $hostEntityId, $hostEntityType;
+  protected $langcode;
+
   public $item_id, $field_name;
 
   public function __construct(array $values = array(), $entityType = NULL) {
@@ -163,12 +165,27 @@ class FieldCollectionItemEntity extends EntityDB {
   }
 
   /**
+   * Sets the host entity. Only possible during creation of a item.
+   */
+  public function setHostEntity($entity_type, $entity, $langcode = LANGUAGE_NONE) {
+    if (!empty($this->is_new)) {
+      $this->hostEntityType = $entity_type;;
+      $this->hostEntity = $entity;
+      $this->langcode = LANGUAGE_NONE;
+      list($this->hostEntityId) = entity_extract_ids($this->hostEntityType, $this->hostEntity);
+    }
+  }
+
+  /**
    * Returns the host entity, which embeds this field-collection item.
    */
   public function hostEntity() {
     if ($this->fetchHostDetails()) {
-      $result = entity_load($this->hostEntityType, array($this->hostEntityId));
-      return reset($result);
+      if (!isset($this->hostEntity)) {
+        $result = entity_load($this->hostEntityType, array($this->hostEntityId));
+        $this->hostEntity = reset($result);
+      }
+      return $this->hostEntity;
     }
   }
 
@@ -205,18 +222,13 @@ class FieldCollectionItemEntity extends EntityDB {
   protected function fetchHostDetails() {
     if (!isset($this->hostEntityId)) {
       if ($this->item_id) {
-        // For saved field-collections, the link has to be created.
+        // For saved field-collections, query the field data to determine the
+        // right host entity.
         $query = new EntityFieldQuery();
         $query->fieldCondition($this->fieldInfo(), 'value', $this->item_id);
         $result = $query->execute();
         list($this->hostEntityType, $data) = each($result);
         $this->hostEntityId = $data ? key($data) : FALSE;
-      }
-      elseif (isset($this->host_entity_type) && isset($this->host_entity)) {
-        // During creation, read the public host entity properties.
-        // See field_collection::save().
-        $this->hostEntityType = $this->host_entity_type;
-        list($this->hostEntityId) = entity_extract_ids($this->hostEntityType, $this->host_entity);
       }
       else {
         // No host entity available yet.
@@ -245,43 +257,31 @@ class FieldCollectionItemEntity extends EntityDB {
   /**
    * Save the field-collection item.
    *
-   * During creation a host entity has to be specified, so that the field_collection
-   * can be referenced from the host entities field. For the link to be fully
-   * established, the host entity object is updated automatically to include a
-   * reference on this field-collection item.
+   * During creation a host entity has to be specified via the setHostEntity()
+   * before this function is invoked. For the link between the entities to be
+   * fully established, the host entity object is updated automatically to
+   * include a reference on this field-collection item durign saving.
    *
-   * @param $host_entity_type
-   *   The type of the host entity. During creation either this argument or the
-   *   "host_entity_type" property has to be specified. As exception FALSE may
-   *   be passed, what skips creating the link to the host entity totally
-   *   (internal usage).
-   * @param $host_entity
-   *   The host entity. During creation either this argument or the
-   *   "host_entity" property has to be specified.
+   * @param $create_link
+   *   (internal) If FALSE is passed, creating the link to the host entity
+   *   is skipped.
    */
-  public function save($host_entity_type = NULL, $host_entity = NULL) {
+  public function save($create_link = TRUE) {
     $transaction = db_transaction();
     try {
       // Make sure we have a host entity during creation.
-      if (!empty($this->is_new) && !isset($host_entity_type) && !isset($this->host_entity_type)) {
+      if (!empty($this->is_new) && !(isset($this->hostEntityId) || isset($this->hostEntity))) {
         throw new Exception("Unable to create a field-collection item without a given host entity.");
       }
       $is_new = !empty($this->is_new);
       $return = entity_get_controller($this->entityType)->save($this, $transaction);
 
       // Create the link to the host entity.
-      if ($is_new && $host_entity_type !== FALSE) {
-        $host_entity = isset($host_entity) ? $host_entity : $this->host_entity;
-        $host_entity_type = isset($host_entity_type) ? $host_entity_type : $this->host_entity_type;
-
-        $lang = isset($this->language) ? $this->language : LANGUAGE_NONE;
-        $host_entity->{$this->field_name}[$lang][] = array('value' => $this->item_id);
-        entity_save($host_entity_type, $host_entity);
+      if ($is_new && $create_link) {
+        $host_entity = $this->hostEntity();
+        $host_entity->{$this->field_name}[$this->langcode][] = array('value' => $this->item_id);
+        entity_save($this->hostEntityType, $host_entity);
       }
-      // @todo: Should we implement a "garbage collector" for field_collections that
-      // somehow were not properly embedded due to the host entity never has
-      // been saved?
-
       return $return;
     }
     catch (Exception $e) {
@@ -496,8 +496,9 @@ function field_collection_field_get_path($field) {
 function field_collection_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   foreach ($items as &$item) {
     // In case the entity has been loaded / created, save it and set the id.
-    if (isset($item['entity'])) {
-      // Pass FALSE, as we already have the link to the host entity.
+    if (isset($item['entity']) && !empty($item['entity']->is_new)) {
+      $item['entity']->setHostEntity($entity_type, $entity);
+      // Pass FALSE, as we the host entity is already being saved.
       $item['entity']->save(FALSE);
       $item = array('value' => $item['entity']->item_id);
     }

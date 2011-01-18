@@ -123,13 +123,9 @@ function field_collection_item_add($field_name, $entity_type, $entity_id, $revis
 
   $title = ($field['cardinality'] == 1) ? $instance['label'] : t('Add new !instance_label', array('!instance_label' => drupal_strtolower($instance['label'])));
   drupal_set_title($title);
-  $field_collection_item = entity_create('field_collection_item', array('field_name' => $field_name));
 
-  // Add the host entity to the field-collection item such that it is picked
-  // upon save and the link between the entities is created.
-  // @see field_collection_item::save().
-  $field_collection_item->host_entity = $entity;
-  $field_collection_item->host_entity_type = $entity_type;
+  $field_collection_item = entity_create('field_collection_item', array('field_name' => $field_name));
+  $field_collection_item->setHostEntity($entity_type, $entity);
 
   // Make sure the current user has access to create a field collection item.
   if (!field_collection_item_access('create', $field_collection_item)) {
