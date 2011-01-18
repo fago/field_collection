@@ -43,6 +43,7 @@ function field_collection_entity_info() {
        ),
     ),
     'access callback' => 'field_collection_item_access',
+    'metadata controller class' => 'FieldCollectionItemMetadataController'
   );
   return $return;
 }
@@ -760,4 +761,28 @@ function field_collection_entity_metadata_property_callback(&$info, $entity_type
   $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$field['field_name']];
   // Set the bundle as we know it is the name of the field.
   $property['bundle'] = $field['field_name'];
+}
+
+/**
+ * Entity property info setter callback for the host entity property.
+ *
+ * As the property is of type entity, the value will be passed as a wrapped
+ * entity.
+ */
+function field_collection_item_set_host_entity($item, $property_name, $wrapper) {
+  if (empty($item->is_new)) {
+    throw new EntityMetadataWrapperException('The host entity may be set only during creation of a field-collection item.');
+  }
+  if (!isset($wrapper->{$item->field_name})) {
+    throw new EntityMetadataWrapperException('The specified entity has no such field-collection field.');
+  }
+  $item->setHostEntity($wrapper->type(), $wrapper->value());
+}
+
+/**
+ * Entity property info getter callback for the host entity property.
+ */
+function field_collection_item_get_host_entity($item) {
+  // As the property is defined as 'entity', we have to return a wrapped entity.
+  return entity_metadata_wrapper($item->hostEntityType(), $item->hostEntity());
 }
