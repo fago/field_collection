@@ -364,9 +364,10 @@ function field_collection_menu() {
         'context' => MENU_CONTEXT_INLINE,
         'file' => 'field_collection.pages.inc',
       );
-      $items[$path . '/add/%field_collection_field_name/%/%'] = array(
+      // Add entity type and the entity id as additional arguments.
+      $items[$path . '/add/%/%'] = array(
         'page callback' => 'field_collection_item_add',
-        'page arguments' => array($count + 1, $count + 2, $count + 3),
+        'page arguments' => array($field['field_name'], $count + 1, $count + 2),
         // The pace callback takes care of checking access itself.
         'access callback' => TRUE,
         'file' => 'field_collection.pages.inc',
@@ -482,11 +483,7 @@ function field_collection_field_info() {
  */
 function field_collection_field_get_path($field) {
   if (empty($field['settings']['path'])) {
-    // Provide a sane default using the field name without the 'field' prefix.
-    if (strpos($field['field_name'], 'field_') === 0) {
-      return 'field-collection/' . substr($field['field_name'], 6);
-    }
-    return 'field-collection/' . $field['field_name'];
+    return 'field-collection/' . strtr($field['field_name'], array('_' => '-'));
   }
   return $field['settings']['path'];
 }
@@ -679,7 +676,7 @@ function field_collection_field_formatter_view($entity_type, $entity, $field, $i
       if (!empty($settings['description'])) {
         $element['#suffix'] .= '<div class="description field-collection-description">' . field_filter_xss($instance['description']) . '</div>';
       }
-      $add_path = $path . '/add/' . strtr($field['field_name'], array('_' => '-')) . '/' . $entity_type . '/' . $id;
+      $add_path = $path . '/add/' . $entity_type . '/' . $id;
       $element['#suffix'] .= '<ul class="action-links action-links-field-collection-add"><li>' . l($settings['add'], $add_path, array('query' => drupal_get_destination())) . "</li></ul>";
     }
   }
