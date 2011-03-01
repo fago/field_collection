@@ -75,7 +75,12 @@ class FieldCollectionBasicTestCase extends DrupalWebTestCase {
 
     // Make sure field_collections are removed during deletion of the host.
     node_delete($node->nid);
-    $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'field_collections are deleted when the host is deleted.');
+    $this->assertTrue(entity_load('field_collection_item', FALSE) === array(), 'Field collections are deleted when the host is deleted.');
+
+    // Try deleting nodes with collections without any values.
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    node_delete($node->nid);
+    $this->assertTrue(node_load($node->nid, NULL, TRUE) == FALSE, 'Node without collection values deleted.');
   }
 
   /**
