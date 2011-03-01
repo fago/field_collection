@@ -278,11 +278,14 @@ class FieldCollectionItemEntity extends EntityDB {
       $return = entity_get_controller($this->entityType)->save($this, $transaction);
 
       // Create the link to the host entity.
+      $host_entity = $this->hostEntity();
       if ($is_new && $create_link) {
-        $host_entity = $this->hostEntity();
         $host_entity->{$this->field_name}[$this->langcode][] = array('value' => $this->item_id);
-        entity_save($this->hostEntityType, $host_entity);
       }
+      // Always save the host entity, so modules are able to react upon changes
+      // to the content of the host and any 'last updated' dates of entities get
+      // updated.
+      entity_save($this->hostEntityType, $host_entity);
       return $return;
     }
     catch (Exception $e) {
